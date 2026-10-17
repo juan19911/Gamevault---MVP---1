@@ -43,9 +43,7 @@ El servidor inicializará automáticamente la base de datos relacional (`databas
 Abre tu navegador e ingresa a:  
 👉 **`http://localhost:3000`**
 
-### 🔑 Credenciales del Usuario Demo
-* **Email:** `gamer@tudai.edu.ar`
-* **Contraseña:** `gamer123`
+
 
 ---
 
