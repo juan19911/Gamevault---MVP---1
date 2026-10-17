@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameVault - Tracker de Videojuegos & Backlog (TUDAI)</title>
+    <!-- Chart.js para analíticas interactivas (HU-06) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <div class="brand" id="brand-logo">
+            <span class="brand-icon">🎮</span>
+            <span>GameVault</span>
+        </div>
+
+        <nav class="nav-links">
+            <button class="nav-btn active" id="nav-catalog" data-view="catalog">
+                <span>📚</span> Catálogo
+            </button>
+            <button class="nav-btn" id="nav-library" data-view="library">
+                <span>🕹️</span> Mi Biblioteca
+            </button>
+            <button class="nav-btn" id="nav-discovery" data-view="discovery">
+                <span>🎲</span> Descubrir / Ruleta
+            </button>
+            <button class="nav-btn" id="nav-dashboard" data-view="dashboard">
+                <span>📊</span> Estadísticas
+            </button>
+        </nav>
+
+        <div class="user-nav-area">
+            <div id="user-logged-box" style="display: none;">
+                <div class="user-badge" id="btn-open-profile" title="Ver Perfil y Favoritos">
+                    <img id="nav-user-avatar" src="" alt="Avatar" class="user-avatar-mini">
+                    <span id="nav-user-name" style="font-weight: 700; font-size: 0.9rem;"></span>
+                </div>
+            </div>
+            <button class="btn btn-primary btn-sm" id="btn-open-auth">
+                <span>🔑</span> Iniciar Sesión
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="container">
+
+        <!-- ================= VIEW 1: CATÁLOGO ================= -->
+        <section id="view-catalog" class="view-section">
+            <div class="view-header">
+                <div class="view-title">
+                    <h1>Catálogo General de Videojuegos</h1>
+                    <p>Explora la biblioteca base, filtra por género o plataforma y añade juegos a tu colección.</p>
+                </div>
+                <div class="filters-bar">
+                    <div class="search-input-wrap">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="input-search" class="search-input" placeholder="Buscar por título o desarrollador...">
+                    </div>
+                    <select id="filter-genre" class="filter-select">
+                        <option value="">Todos los Géneros</option>
+                    </select>
+                    <select id="filter-platform" class="filter-select">
+                        <option value="">Todas las Plataformas</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="grid-games" class="games-grid">
+                <!-- Tarjetas renderizadas dinámicamente -->
+            </div>
+        </section>
+
+        <!-- ================= VIEW 2: MI BIBLIOTECA (BACKLOG) ================= -->
+        <section id="view-library" class="view-section" style="display: none;">
+            <div class="view-header">
+                <div class="view-title">
+                    <h1>Mi Biblioteca Personal</h1>
+                    <p>Gestiona tu backlog, actualiza tu progreso de juego y añade horas a tu bitácora.</p>
+                </div>
+                <div class="filters-bar">
+                    <div class="search-input-wrap">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="library-search" class="search-input" placeholder="Buscar en mi biblioteca...">
+                    </div>
+                    <select id="filter-library-priority" class="filter-select">
+                        <option value="all">Cualquier Prioridad</option>
+                        <option value="high">Prioridad Alta</option>
+                        <option value="medium">Prioridad Media</option>
+                        <option value="low">Prioridad Baja</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="library-tabs" id="tabs-status">
+                <button class="tab-btn active" data-status="all">Todos</button>
+                <button class="tab-btn" data-status="playing">Jugando</button>
+                <button class="tab-btn" data-status="pending">Pendientes</button>
+                <button class="tab-btn" data-status="completed">Completados</button>
+                <button class="tab-btn" data-status="dropped">Abandonados</button>
+            </div>
+
+            <div id="grid-library" class="games-grid">
+                <!-- Juegos en biblioteca renderizados dinámicamente -->
+            </div>
+        </section>
+
+        <!-- ================= VIEW 3: DESCUBRIR / RULETA ================= -->
+        <section id="view-discovery" class="view-section" style="display: none;">
+            <div class="view-header">
+                <div class="view-title">
+                    <h1>Asistente de Indecisión & Recomendaciones</h1>
+                    <p>Supera la fatiga de elección con el selector aleatorio inteligente de pendientes (HU-07).</p>
+                </div>
+            </div>
+
+            <div class="ruleta-box">
+                <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem;">🎲 ¿No sabes a qué jugar hoy?</h2>
+                <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 1.5rem auto;">
+                    Presiona el botón para seleccionar aleatoriamente un título de tus juegos pendientes, o filtra solo aquellos que marcaste con alta prioridad.
+                </p>
+
+                <div style="display: flex; justify-content: center; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.95rem; font-weight: 600;">
+                        <input type="checkbox" id="check-ruleta-priority" style="width: 18px; height: 18px; accent-color: var(--primary);">
+                        Solo Juegos con Prioridad Alta
+                    </label>
+                </div>
+
+                <button class="btn btn-primary" id="btn-spin-ruleta" style="font-size: 1.1rem; padding: 0.8rem 2rem;">
+                    <span>✨</span> Girar Ruleta Gamer
+                </button>
+
+                <div class="ruleta-result" id="ruleta-result-box" style="display: none;">
+                    <!-- Resultado de la ruleta -->
+                </div>
+            </div>
+
+            <div style="margin-top: 3rem;">
+                <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 1.25rem;">
+                    💡 Basado en tu Género Más Jugado (<span id="recom-genre-name" style="color: var(--primary);">Detectando...</span>)
+                </h2>
+                <div id="grid-recom-genre" class="games-grid">
+                    <!-- Recomendaciones -->
+                </div>
+            </div>
+
+            <div style="margin-top: 3rem;">
+                <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 1.25rem;">
+                    ⭐ Más Valorados por la Comunidad
+                </h2>
+                <div id="grid-recom-community" class="games-grid">
+                    <!-- Destacados comunitarios -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= VIEW 4: ESTADÍSTICAS & DASHBOARD ================= -->
+        <section id="view-dashboard" class="view-section" style="display: none;">
+            <div class="view-header">
+                <div class="view-title">
+                    <h1>Dashboard de Avance y Métricas</h1>
+                    <p>Visualización en tiempo real de tu rendimiento, horas acumuladas y estado del backlog (HU-06).</p>
+                </div>
+            </div>
+
+            <!-- KPIs -->
+            <div class="kpi-row">
+                <div class="kpi-card">
+                    <div class="kpi-icon">📚</div>
+                    <div>
+                        <div class="kpi-value" id="kpi-total-games">0</div>
+                        <div class="kpi-label">Juegos en Biblioteca</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">🏆</div>
+                    <div>
+                        <div class="kpi-value" id="kpi-completed-pct">0%</div>
+                        <div class="kpi-label">Backlog Completado</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">⏱️</div>
+                    <div>
+                        <div class="kpi-value" id="kpi-total-hours">0h</div>
+                        <div class="kpi-label">Horas Totales Invertidas</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: rgba(121, 40, 202, 0.1); color: #a855f7;">🎯</div>
+                    <div>
+                        <div class="kpi-value" id="kpi-dominant-genre">-</div>
+                        <div class="kpi-label">Género Predilecto</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GRÁFICOS INTERACTIVOS (Chart.js) -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <span>📊</span> Distribución por Estado de Backlog
+                    </div>
+                    <div style="height: 280px; position: relative;">
+                        <canvas id="chart-status-backlog"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <span>📈</span> Distribución de Juegos por Género
+                    </div>
+                    <div style="height: 280px; position: relative;">
+                        <canvas id="chart-genre-distribution"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOP JUEGOS MÁS JUGADOS -->
+            <div class="chart-card" style="margin-top: 1.5rem;">
+                <div class="chart-title">
+                    <span>🔥</span> Top 5 Videojuegos con Mayor Tiempo Invertido
+                </div>
+                <div id="top-games-list" style="display: flex; flex-direction: column; gap: 0.8rem;">
+                    <!-- Renderizado dinámicamente -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>GameVault © 2026 · Proyecto TUDAI - Taller de Desarrollo de Aplicaciones · Autores: Juan Artusa & Luca Gomez</p>
+    </footer>
+
+    <!-- ================= MODALES ================= -->
+
+    <!-- MODAL AUTENTICACIÓN (LOGIN / REGISTRO) -->
+    <div class="modal-overlay" id="modal-auth">
+        <div class="modal-content">
+            <button class="modal-close" data-close="modal-auth">&times;</button>
+            <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+                <button class="btn btn-secondary btn-sm" id="tab-login" style="flex: 1; font-weight: 700;">Iniciar Sesión</button>
+                <button class="btn btn-secondary btn-sm" id="tab-register" style="flex: 1;">Registrarse</button>
+            </div>
+
+            <!-- LOGIN FORM -->
+            <form id="form-login">
+                <div class="form-group">
+                    <label class="form-label">Correo Electrónico</label>
+                    <input type="email" id="login-email" class="form-input" placeholder="gamer@tudai.edu.ar" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" id="login-password" class="form-input" placeholder="••••••••" required>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+                    💡 <em>Usuario demo: gamer@tudai.edu.ar / gamer123</em>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Ingresar</button>
+            </form>
+
+            <!-- REGISTER FORM -->
+            <form id="form-register" style="display: none;">
+                <div class="form-group">
+                    <label class="form-label">Nombre de Usuario (GamerTag)</label>
+                    <input type="text" id="register-username" class="form-input" placeholder="JuanGamer99" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Correo Electrónico</label>
+                    <input type="email" id="register-email" class="form-input" placeholder="juan@ejemplo.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contraseña (Mínimo 6 caracteres)</label>
+                    <input type="password" id="register-password" class="form-input" placeholder="••••••••" minlength="6" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Crear Cuenta</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL AGREGAR / EDITAR JUEGO EN BIBLIOTECA -->
+    <div class="modal-overlay" id="modal-game-form">
+        <div class="modal-content">
+            <button class="modal-close" data-close="modal-game-form">&times;</button>
+            <h2 id="modal-game-title" style="margin-bottom: 1.25rem;">Agregar a mi Biblioteca</h2>
+
+            <form id="form-user-game">
+                <input type="hidden" id="form-game-id">
+                <input type="hidden" id="form-library-id">
+
+                <div class="form-group">
+                    <label class="form-label">Estado en el Backlog</label>
+                    <select id="user-status" class="form-select">
+                        <option value="pending">Pendiente (En lista de espera)</option>
+                        <option value="playing">Jugando actualmente</option>
+                        <option value="completed">Completado</option>
+                        <option value="dropped">Abandonado</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nivel de Prioridad</label>
+                    <select id="user-priority" class="form-select">
+                        <option value="high">Prioridad Alta 🔥</option>
+                        <option value="medium" selected>Prioridad Media ⚖️</option>
+                        <option value="low">Prioridad Baja 💤</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Horas Totales Registradas</label>
+                    <input type="number" id="user-hours" class="form-input" min="0" step="0.5" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Calificación Personal (1 a 5 Estrellas)</label>
+                    <div class="star-rating" id="user-rating-stars">
+                        <span class="star" data-val="1">★</span>
+                        <span class="star" data-val="2">★</span>
+                        <span class="star" data-val="3">★</span>
+                        <span class="star" data-val="4">★</span>
+                        <span class="star" data-val="5">★</span>
+                    </div>
+                    <input type="hidden" id="user-rating" value="">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Reseña o Comentarios Personales</label>
+                    <textarea id="user-review" class="form-textarea" rows="3" placeholder="¿Qué te pareció este juego?"></textarea>
+                </div>
+
+                <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" id="user-is-favorite" style="width: 18px; height: 18px; accent-color: var(--primary);">
+                    <label for="user-is-favorite" style="font-size: 0.9rem; cursor: pointer;">
+                        Destacar como uno de mis 4 juegos favoritos (Perfil)
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Guardar en Biblioteca</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL REGISTRAR SESIÓN DE JUEGO (BITÁCORA HU-05) -->
+    <div class="modal-overlay" id="modal-session">
+        <div class="modal-content">
+            <button class="modal-close" data-close="modal-session">&times;</button>
+            <h2>Registrar Sesión en Bitácora</h2>
+            <p id="session-game-name" style="color: var(--primary); font-weight: 700; margin-bottom: 1.25rem;"></p>
+
+            <form id="form-session">
+                <input type="hidden" id="session-library-id">
+
+                <div class="form-group">
+                    <label class="form-label">Horas Jugadas en esta Sesión</label>
+                    <input type="number" id="session-hours" class="form-input" min="0.1" step="0.5" value="2.0" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Fecha de la Partida</label>
+                    <input type="date" id="session-date" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Notas de Avance / Hitos Alcanzados</label>
+                    <textarea id="session-notes" class="form-textarea" rows="3" placeholder="Ej: Pasé el capítulo 4 y derroté al jefe final de zona."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Registrar Avance</button>
+            </form>
+
+            <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem;">Historial de Sesiones Anteriores</h4>
+                <div id="session-history-list" style="max-height: 150px; overflow-y: auto; font-size: 0.85rem; color: var(--text-muted);">
+                    <!-- Historial -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PERFIL DE USUARIO Y DESTACADOS (HU-02) -->
+    <div class="modal-overlay" id="modal-profile">
+        <div class="modal-content" style="max-width: 650px;">
+            <button class="modal-close" data-close="modal-profile">&times;</button>
+            <div style="display: flex; align-items: center; gap: 1.25rem; margin-bottom: 1.5rem;">
+                <img id="profile-avatar" src="" alt="Avatar" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+                <div>
+                    <h2 id="profile-username" style="font-size: 1.4rem;"></h2>
+                    <p id="profile-email" style="font-size: 0.85rem; color: var(--text-muted);"></p>
+                    <span id="profile-platform-badge" style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: var(--primary);"></span>
+                </div>
+            </div>
+
+            <p id="profile-bio" style="font-size: 0.9rem; line-height: 1.5; color: #cbd5e1; margin-bottom: 1.5rem; background: var(--bg-card); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);"></p>
+
+            <h3 style="font-size: 1.05rem; font-weight: 800; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span>⭐</span> Mis 4 Videojuegos Favoritos (Destacados de Perfil)
+            </h3>
+            <div id="profile-favorites-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1.5rem;">
+                <!-- 4 Slots de favoritos -->
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                <button class="btn btn-danger btn-sm" id="btn-logout">Cerrar Sesión</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="toast">Mensaje de notificación</div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>
+
