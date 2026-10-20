@@ -438,6 +438,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${item.review ? `<p class="card-synopsis" style="font-style: italic; color: #94a3b8;">"${item.review}"</p>` : ''}
                         
                         <div class="card-footer" style="gap: 0.4rem; flex-wrap: wrap;">
+                            <button class="btn ${item.is_favorite ? 'btn-primary' : 'btn-secondary'} btn-sm btn-fav-toggle" title="${item.is_favorite ? 'Quitar de favoritos' : 'Fijar en perfil (máx 4)'}">
+                                ${item.is_favorite ? '⭐' : '☆'}
+                            </button>
                             <button class="btn btn-secondary btn-sm btn-session" title="Registrar horas de juego">
                                 ⏱️ Bitácora
                             </button>
@@ -452,6 +455,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
 
                 // Event handlers
+                card.querySelector('.btn-fav-toggle').addEventListener('click', async () => {
+                    try {
+                        const newFav = item.is_favorite ? 0 : 1;
+                        await API.updateLibraryEntry(item.library_id, { is_favorite: newFav });
+                        showToast(newFav ? `"${item.title}" fijado en tus favoritos (perfil)` : `"${item.title}" quitado de favoritos`);
+                        loadLibrary();
+                        loadProfile();
+                    } catch (err) {
+                        showToast(err.message, true);
+                    }
+                });
+
                 card.querySelector('.btn-session').addEventListener('click', () => {
                     openSessionModal(item);
                 });
