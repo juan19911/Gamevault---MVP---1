@@ -66,11 +66,19 @@ const LibraryModel = {
         return rows[0] || null;
     },
 
-    async addGame(userId, { game_id, status = 'pending', priority = 'medium', hours_played = 0, rating = null, review = null }) {
+    async countUserFavorites(userId) {
+        const [rows] = await db.query(
+            'SELECT COUNT(*) as count FROM user_library WHERE user_id = ? AND is_favorite = 1',
+            [userId]
+        );
+        return rows[0]?.count || 0;
+    },
+
+    async addGame(userId, { game_id, status = 'pending', priority = 'medium', hours_played = 0, rating = null, review = null, is_favorite = 0 }) {
         const [result] = await db.query(
-            `INSERT INTO user_library (user_id, game_id, status, priority, hours_played, rating, review)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [userId, game_id, status, priority, hours_played || 0, rating || null, review || null]
+            `INSERT INTO user_library (user_id, game_id, status, priority, hours_played, rating, review, is_favorite)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [userId, game_id, status, priority, hours_played || 0, rating || null, review || null, is_favorite ? 1 : 0]
         );
         return result.insertId;
     },
