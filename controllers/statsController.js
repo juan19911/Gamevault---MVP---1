@@ -19,11 +19,14 @@ const StatsController = {
             const randomGame = await StatsModel.getRandomPending(req.user.id, onlyHigh);
 
             if (!randomGame) {
+                const totalPending = await StatsModel.countPendingByUser(req.user.id, false);
+                const message = (onlyHigh && totalPending > 0)
+                    ? 'No posees videojuegos pendientes clasificados con Prioridad Alta. Desmarca la casilla para sortear entre todos tus pendientes.'
+                    : 'No tienes videojuegos en estado Pendiente en tu biblioteca personal. Explora el catálogo para agregar títulos a tu backlog.';
+
                 return res.status(200).json({
                     success: true,
-                    message: onlyHigh
-                        ? 'No tienes juegos pendientes con prioridad Alta.'
-                        : 'No tienes juegos pendientes en tu biblioteca. ¡Explora el catálogo y agrega uno!',
+                    message,
                     data: null
                 });
             }

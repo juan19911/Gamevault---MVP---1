@@ -76,7 +76,7 @@ const StatsModel = {
 
     async getRandomPending(userId, onlyHighPriority = false) {
         let sql = `
-            SELECT ul.id AS library_id, g.id AS game_id, g.title, g.genre, g.platform, g.synopsis, g.cover_url, ul.priority
+            SELECT ul.id AS library_id, g.id AS game_id, g.title, g.genre, g.platform, g.synopsis, g.cover_url, g.release_year, g.developer, ul.priority
             FROM user_library ul
             JOIN games g ON ul.game_id = g.id
             WHERE ul.user_id = ? AND ul.status = 'pending'
@@ -87,10 +87,21 @@ const StatsModel = {
             sql += " AND ul.priority = 'high'";
         }
 
-        sql += ' ORDER BY RANDOM() LIMIT 1';
+        // Dual Engine: MySQL RAND() vs SQLite RANDOM() (T-7.1)
+        const randomFn = (process.env.DB_CLIENT === 'mysql') ? 'RAND()' : 'RANDOM()';
+        sql += ` ORDER BY ${randomFn} LIMIT 1`;
 
         const [rows] = await db.query(sql, params);
         return rows[0] || null;
+    },
+
+    async countPendingByUser(userId, onlyHighPriority = false) {
+        let sql = "SELECT COUNT(*) as count FROM user_library WHERE user_id = ? AND status = 'pending'";
+        if (onlyHighPriority) {
+            sql += " AND priority = 'high'";
+        }
+        const [rows] = await db.query(sql, [userId]);
+        return rows[0]?.count || 0;
     },
 
     async getRecommendations(userId) {
