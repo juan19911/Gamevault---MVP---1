@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    avatar VARCHAR(255) DEFAULT 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=150',
+    avatar VARCHAR(255) DEFAULT '/assets/avatars/pixel-knight.svg',
     bio VARCHAR(255) DEFAULT 'Gamer en busca de completar su backlog.',
     platform VARCHAR(50) DEFAULT 'PC',
     role VARCHAR(20) DEFAULT 'user',

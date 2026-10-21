@@ -80,8 +80,23 @@ const UserModel = {
         }
 
         return this.getFavorites(userId);
+    },
+
+    async updatePassword(id, passwordHash) {
+        await db.query(
+            'UPDATE users SET password_hash = ? WHERE id = ?',
+            [passwordHash, id]
+        );
+        return true;
+    },
+
+    async getPasswordHash(id) {
+        const [rows] = await db.query(
+            'SELECT password_hash FROM users WHERE id = ?',
+            [id]
+        );
+        return rows[0]?.password_hash || null;
     }
 };
 
 module.exports = UserModel;
-

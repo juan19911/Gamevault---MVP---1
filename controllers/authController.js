@@ -130,9 +130,40 @@ const AuthController = {
 
     async updateProfile(req, res, next) {
         try {
-            const { bio, platform, avatar, favoriteGameIds } = req.body;
+            const { bio, platform, avatar, favoriteGameIds, current_password, new_password } = req.body;
 
-            const updatedUser = await UserModel.updateProfile(req.user.id, { bio, platform, avatar });
+            // Password update validation and security check
+            if (new_password && new_password.trim() !== '') {
+                if (!current_password) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Debes ingresar tu contraseña actual para autorizar el cambio de contraseña.'
+                    });
+                }
+                if (new_password.trim().length < 6) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'La nueva contraseña debe tener al menos 6 caracteres.'
+                    });
+                }
+                const currentHash = await UserModel.getPasswordHash(req.user.id);
+                const isMatch = await bcrypt.compare(current_password, currentHash);
+                if (!isMatch) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'La contraseña actual ingresada es incorrecta.'
+                    });
+                }
+                const salt = await bcrypt.genSalt(10);
+                const newHash = await bcrypt.hash(new_password.trim(), salt);
+                await UserModel.updatePassword(req.user.id, newHash);
+            }
+
+            const updatedUser = await UserModel.updateProfile(req.user.id, { 
+                bio: bio !== undefined ? bio.trim() : undefined, 
+                platform: platform !== undefined ? platform.trim() : undefined, 
+                avatar: avatar !== undefined ? avatar.trim() : undefined 
+            });
 
             if (Array.isArray(favoriteGameIds)) {
                 await UserModel.setFavorites(req.user.id, favoriteGameIds);
@@ -142,7 +173,7 @@ const AuthController = {
 
             res.status(200).json({
                 success: true,
-                message: 'Perfil actualizado exitosamente.',
+                message: 'Perfil y datos personales actualizados exitosamente.',
                 user: updatedUser,
                 favorites
             });

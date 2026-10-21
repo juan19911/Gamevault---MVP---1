@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
             userLoggedBox.style.display = 'flex';
             btnOpenAuth.style.display = 'none';
             navUserName.textContent = user.username;
-            navUserAvatar.src = user.avatar || 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=150';
+            navUserAvatar.src = user.avatar || '/assets/avatars/pixel-knight.svg';
         } else {
             userLoggedBox.style.display = 'none';
             btnOpenAuth.style.display = 'inline-flex';
@@ -150,12 +150,22 @@ document.addEventListener('DOMContentLoaded', () => {
         API.logout();
     });
 
-    // Profile Modal (HU-02)
+    // Profile Modal & Profile Edition (HU-02)
+    let currentProfileUser = null;
+
     document.getElementById('btn-open-profile')?.addEventListener('click', async () => {
         try {
             const res = await API.getProfile();
+            currentProfileUser = res.user;
             const user = res.user;
-            document.getElementById('profile-avatar').src = user.avatar;
+
+            // Reset views to summary
+            const summaryView = document.getElementById('profile-view-summary');
+            const editView = document.getElementById('profile-view-edit');
+            if (summaryView) summaryView.style.display = 'block';
+            if (editView) editView.style.display = 'none';
+
+            document.getElementById('profile-avatar').src = user.avatar || '/assets/avatars/pixel-knight.svg';
             document.getElementById('profile-username').textContent = user.username;
             document.getElementById('profile-email').textContent = user.email;
             document.getElementById('profile-platform-badge').textContent = user.platform || 'PC';
@@ -199,6 +209,134 @@ document.addEventListener('DOMContentLoaded', () => {
             openModal('modal-profile');
         } catch (err) {
             showToast('Inicia sesión para consultar tu perfil', true);
+        }
+    });
+
+    // Selector de Avatares Rápidos Pixel Art
+    function selectPixelAvatar(avatarUrl, avatarName) {
+        const input = document.getElementById('edit-profile-avatar');
+        const preview = document.getElementById('edit-avatar-preview');
+        const titleEl = document.getElementById('edit-avatar-title');
+
+        if (input) input.value = avatarUrl;
+        if (preview) preview.src = avatarUrl;
+        if (titleEl && avatarName) titleEl.textContent = avatarName;
+
+        // Resaltar visualmente el botón seleccionado
+        document.querySelectorAll('.btn-avatar-preset').forEach(b => {
+            if (b.dataset.avatar === avatarUrl) {
+                b.style.borderColor = 'var(--primary)';
+                b.style.background = 'rgba(34, 197, 94, 0.15)';
+                b.style.boxShadow = '0 0 10px rgba(34, 197, 94, 0.3)';
+            } else {
+                b.style.borderColor = 'var(--border-color)';
+                b.style.background = 'var(--bg-card)';
+                b.style.boxShadow = 'none';
+            }
+        });
+    }
+
+    document.querySelectorAll('.btn-avatar-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+            selectPixelAvatar(btn.dataset.avatar, btn.dataset.name);
+        });
+    });
+
+    // Cambiar a vista de edición de perfil
+    document.getElementById('btn-open-edit-profile')?.addEventListener('click', () => {
+        if (!currentProfileUser) return;
+        const summaryView = document.getElementById('profile-view-summary');
+        const editView = document.getElementById('profile-view-edit');
+        if (summaryView) summaryView.style.display = 'none';
+        if (editView) editView.style.display = 'block';
+
+        const currentAvatar = currentProfileUser.avatar || '/assets/avatars/pixel-knight.svg';
+        const matchingBtn = Array.from(document.querySelectorAll('.btn-avatar-preset')).find(b => b.dataset.avatar === currentAvatar);
+        const avatarName = matchingBtn ? matchingBtn.dataset.name : 'Avatar Personalizado';
+        selectPixelAvatar(currentAvatar, avatarName);
+
+        const emailInput = document.getElementById('edit-profile-email');
+        const platformSelect = document.getElementById('edit-profile-platform');
+        const bioTextarea = document.getElementById('edit-profile-bio');
+        const currentPassInput = document.getElementById('edit-profile-current-pass');
+        const newPassInput = document.getElementById('edit-profile-new-pass');
+        const confirmPassInput = document.getElementById('edit-profile-confirm-pass');
+
+        if (emailInput) emailInput.value = currentProfileUser.email || '';
+        if (platformSelect) platformSelect.value = currentProfileUser.platform || 'PC';
+        if (bioTextarea) bioTextarea.value = currentProfileUser.bio || '';
+
+        if (currentPassInput) currentPassInput.value = '';
+        if (newPassInput) newPassInput.value = '';
+        if (confirmPassInput) confirmPassInput.value = '';
+    });
+
+    // Cancelar edición y regresar a resumen
+    const switchBackToProfileSummary = () => {
+        const summaryView = document.getElementById('profile-view-summary');
+        const editView = document.getElementById('profile-view-edit');
+        if (editView) editView.style.display = 'none';
+        if (summaryView) summaryView.style.display = 'block';
+    };
+
+    document.getElementById('btn-cancel-edit-profile')?.addEventListener('click', switchBackToProfileSummary);
+    document.getElementById('btn-cancel-edit-profile-2')?.addEventListener('click', switchBackToProfileSummary);
+
+    // Guardar cambios del perfil (HU-02)
+    document.getElementById('form-edit-profile')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const avatar = document.getElementById('edit-profile-avatar')?.value.trim();
+        const platform = document.getElementById('edit-profile-platform')?.value;
+        const bio = document.getElementById('edit-profile-bio')?.value.trim();
+        const current_password = document.getElementById('edit-profile-current-pass')?.value;
+        const new_password = document.getElementById('edit-profile-new-pass')?.value;
+        const confirm_password = document.getElementById('edit-profile-confirm-pass')?.value;
+
+        // Validaciones de contraseñas
+        if (new_password || confirm_password) {
+            if (!current_password) {
+                showToast('Debes ingresar tu contraseña actual para autorizar el cambio', true);
+                return;
+            }
+            if (new_password.length < 6) {
+                showToast('La nueva contraseña debe tener al menos 6 caracteres', true);
+                return;
+            }
+            if (new_password !== confirm_password) {
+                showToast('Las nuevas contraseñas no coinciden', true);
+                return;
+            }
+        } else if (current_password) {
+            showToast('Ingresa una nueva contraseña para actualizarla', true);
+            return;
+        }
+
+        try {
+            const payload = { avatar, platform, bio };
+            if (new_password) {
+                payload.current_password = current_password;
+                payload.new_password = new_password;
+            }
+
+            const res = await API.updateProfile(payload);
+            
+            // Actualizar datos de usuario en memoria y almacenamiento local
+            currentProfileUser = res.user;
+            API.setUser(res.user);
+            initAuthUI();
+
+            // Actualizar campos de la vista resumen
+            document.getElementById('profile-avatar').src = res.user.avatar || '/assets/avatars/pixel-knight.svg';
+            document.getElementById('profile-username').textContent = res.user.username;
+            document.getElementById('profile-email').textContent = res.user.email;
+            document.getElementById('profile-platform-badge').textContent = res.user.platform || 'PC';
+            document.getElementById('profile-bio').textContent = res.user.bio || 'Sin biografía.';
+
+            switchBackToProfileSummary();
+            showToast(res.message || 'Perfil y datos personales actualizados exitosamente');
+        } catch (err) {
+            showToast(err.message || 'Error al actualizar el perfil', true);
         }
     });
 
@@ -1234,7 +1372,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <img src="${r.avatar || 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=150'}" alt="${r.username}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;">
+                            <img src="${r.avatar || '/assets/avatars/pixel-knight.svg'}" alt="${r.username}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;">
                             <strong style="font-size: 0.85rem; color: #f1f5f9;">${r.username}</strong>
                         </div>
                         <span style="font-size: 0.85rem;">${stars}</span>
