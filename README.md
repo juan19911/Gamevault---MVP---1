@@ -79,3 +79,23 @@ Abre tu navegador e ingresa a:
   * `style(ui): mejoras visuales y rediseño`
   * `fix(api): corrección de bugs o rutas`
   * `test(ci): suite de tests automatizados y pipeline`
+
+---
+
+## 🧪 Calidad de Software, Tests Automatizados y CI Pipeline (Rama 4)
+* **Runner Nativo:** Suite implementada con el test runner estándar de Node.js (`node:test` y `node:assert`), sin dependencias externas innecesarias.
+* **Cobertura Funcional:** 21 tests automatizados distribuidos en 5 suites principales:
+  * `tests/health.test.js`: Disponibilidad y endpoints de salud (`UP`) y respuestas 404 estructuradas en JSON.
+  * `tests/auth.test.js`: Registro, autenticación, hashing bcrypt, emisión de JWT y protección de endpoints (HU-01).
+  * `tests/profile.test.js`: Edición de perfil, cambio de contraseñas y validación estricta del límite de 4 favoritos (HU-02).
+  * `tests/games.test.js`: Catálogo de 18 videojuegos, búsqueda reactiva por título y filtros por género/plataforma (HU-03).
+  * `tests/lists.test.js`: CRUD completo de listas temáticas personalizadas y agregación de títulos (HU-05).
+* **Pipeline de Integración Continua (GitHub Actions):** Flujo de trabajo en `.github/workflows/ci.yml` que ejecuta en cada `push` y `pull_request`:
+  1. Configuración automatizada de entorno Node.js 22.x.
+  2. Verificación estricta de sintaxis en todos los modelos, controladores y scripts frontend (`node -c`).
+  3. Ejecución completa de la suite de pruebas unitarias e integración con `npm test`.
+
+### Ejecución Local de Pruebas:
+```bash
+npm test
+```

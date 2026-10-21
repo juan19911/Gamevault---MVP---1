@@ -48,7 +48,14 @@ const API = {
                 headers
             });
 
-            const data = await res.json();
+            const contentType = res.headers.get('content-type') || '';
+            let data = {};
+            if (contentType.includes('application/json')) {
+                data = await res.json();
+            } else {
+                const text = await res.text();
+                data = { message: text || `Error HTTP ${res.status}` };
+            }
 
             if (!res.ok) {
                 if (res.status === 401 && endpoint !== '/auth/login' && endpoint !== '/auth/register') {

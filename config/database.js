@@ -64,6 +64,8 @@ async function initDatabase() {
 
         dbInstance = new DatabaseSync(dbPath);
         dbInstance.exec('PRAGMA foreign_keys = ON;');
+        dbInstance.exec('PRAGMA journal_mode = WAL;');
+        dbInstance.exec('PRAGMA busy_timeout = 5000;');
 
         // Run schema
         const schemaPath = path.join(__dirname, '..', 'database', 'schema.sql');

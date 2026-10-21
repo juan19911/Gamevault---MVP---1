@@ -166,6 +166,12 @@ const AuthController = {
             });
 
             if (Array.isArray(favoriteGameIds)) {
+                if (favoriteGameIds.length > 4) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'No puedes destacar más de 4 videojuegos favoritos (límite máximo HU-02).'
+                    });
+                }
                 await UserModel.setFavorites(req.user.id, favoriteGameIds);
             }
 

@@ -33,6 +33,7 @@ const registerRoutes = (prefix) => {
     app.use(`${prefix}/library`, libraryRoutes);
     app.use(`${prefix}/sessions`, sessionRoutes);
     app.use(`${prefix}/stats`, statsRoutes);
+    app.use(`${prefix}/lists`, listRoutes);
 };
 
 registerRoutes('/api');
@@ -47,6 +48,15 @@ app.get('/api/health', (req, res) => {
         timestamp: new Date().toISOString()
     });
 });
+
+// JSON 404 handler for unhandled API routes
+app.all('/api/*', (req, res) => {
+    res.status(404).json({
+        success: false,
+        message: `Endpoint no encontrado: ${req.method} ${req.originalUrl}`
+    });
+});
+
 
 // Fallback to SPA index.html for unknown non-API routes
 app.get(/^(?!\/api).+/, (req, res) => {
@@ -74,5 +84,9 @@ async function startServer() {
     }
 }
 
-startServer();
+if (require.main === module) {
+    startServer();
+}
+
+module.exports = { app, startServer };
 

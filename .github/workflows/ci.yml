@@ -1,0 +1,48 @@
+name: GameVault CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-verify:
+    name: Build, Lint & Automated Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      - name: Checkout Código Fuente
+        uses: actions/checkout@v4
+
+      - name: Configurar Entorno Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Instalar Dependencias del Proyecto
+        run: npm install
+
+      - name: Validación de Sintaxis e Integridad (Lint & Sanity)
+        run: |
+          node -c server.js
+          node -c config/database.js
+          node -c models/userModel.js
+          node -c models/gameModel.js
+          node -c models/libraryModel.js
+          node -c models/listModel.js
+          node -c controllers/authController.js
+          node -c controllers/gameController.js
+          node -c controllers/libraryController.js
+          node -c controllers/listController.js
+          node -c public/js/app.js
+          node -c public/js/api.js
+
+      - name: Ejecutar Suite de Tests Automatizados (node:test)
+        run: npm test
+
