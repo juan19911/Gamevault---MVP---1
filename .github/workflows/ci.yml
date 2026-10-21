@@ -47,4 +47,11 @@ jobs:
           node -c public/js/api.js
 
       - name: Ejecutar Suite de Tests Automatizados (node:test)
-        run: npm test
+        run: |
+          npm test 2>&1 | tee test-output.log || {
+            echo "### ❌ Fallo en Suite de Tests:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat test-output.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit 1
+          }
