@@ -1,6 +1,6 @@
 const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert');
-const { getTestServer, closeTestServer } = require('./setup');
+const { getTestServer, closeTestServer } = require('./helpers/setup');
 
 describe('Perfil de Usuario y Tope de 4 Favoritos (HU-02)', () => {
     let baseUrl = '';

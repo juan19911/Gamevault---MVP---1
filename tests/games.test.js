@@ -1,6 +1,6 @@
 const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert');
-const { getTestServer, closeTestServer } = require('./setup');
+const { getTestServer, closeTestServer } = require('./helpers/setup');
 
 describe('Catálogo y Búsqueda de Videojuegos (HU-03)', () => {
     let baseUrl = '';
