@@ -24,6 +24,9 @@
             <button class="nav-btn" id="nav-library" data-view="library">
                 <span>🕹️</span> Mi Biblioteca
             </button>
+            <button class="nav-btn" id="nav-lists" data-view="lists">
+                <span>📑</span> Listas Temáticas
+            </button>
             <button class="nav-btn" id="nav-discovery" data-view="discovery">
                 <span>🎲</span> Descubrir / Ruleta
             </button>
@@ -234,6 +237,23 @@
             </div>
         </section>
 
+        <!-- ================= VIEW 5: LISTAS TEMÁTICAS (HU-05) ================= -->
+        <section id="view-lists" class="view-section" style="display: none;">
+            <div class="view-header">
+                <div class="view-title">
+                    <h1>Mis Listas Temáticas</h1>
+                    <p>Crea y gestiona colecciones personalizadas de juegos (HU-05).</p>
+                </div>
+                <button class="btn btn-primary" id="btn-open-create-list">
+                    <span>➕</span> Nueva Lista Temática
+                </button>
+            </div>
+
+            <div id="grid-custom-lists" class="games-grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+                <!-- Listas renderizadas dinámicamente -->
+            </div>
+        </section>
+
     </main>
 
     <!-- FOOTER -->
@@ -411,6 +431,73 @@
 
             <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
                 <button class="btn btn-danger btn-sm" id="btn-logout">Cerrar Sesión</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CREAR LISTA TEMÁTICA (HU-05) -->
+    <div class="modal-overlay" id="modal-create-list">
+        <div class="modal-content">
+            <button class="modal-close" data-close="modal-create-list">&times;</button>
+            <h2>Nueva Lista Temática</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem;">Agrupa tus juegos favoritos por temática, saga o reto personal.</p>
+            <form id="form-create-list">
+                <div class="form-group">
+                    <label class="form-label">Nombre de la Lista</label>
+                    <input type="text" id="new-list-name" class="form-input" placeholder="Ej: Joyas Ocultas de PS2" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Descripción (Opcional)</label>
+                    <textarea id="new-list-desc" class="form-textarea" rows="3" placeholder="Breve reseña sobre qué juegos componen esta lista..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Crear Lista</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DETALLE DE LISTA TEMÁTICA (HU-05) -->
+    <div class="modal-overlay" id="modal-list-details">
+        <div class="modal-content" style="max-width: 650px;">
+            <button class="modal-close" data-close="modal-list-details">&times;</button>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                <h2 id="detail-list-title" style="margin-bottom: 0;"></h2>
+                <button class="btn btn-danger btn-sm" id="btn-delete-current-list">🗑️ Eliminar Lista</button>
+            </div>
+            <p id="detail-list-desc" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;"></p>
+            <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Videojuegos en esta lista:</h4>
+            <div id="detail-list-games" style="display: flex; flex-direction: column; gap: 0.6rem; max-height: 350px; overflow-y: auto;">
+                <!-- Juegos en la lista -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AGREGAR JUEGO A LISTA (HU-05) -->
+    <div class="modal-overlay" id="modal-add-to-list">
+        <div class="modal-content">
+            <button class="modal-close" data-close="modal-add-to-list">&times;</button>
+            <h2>Añadir a Lista Temática</h2>
+            <p id="add-to-list-gamename" style="color: var(--primary); font-weight: 700; margin-bottom: 1.25rem;"></p>
+            <form id="form-add-to-list">
+                <input type="hidden" id="add-to-list-gameid">
+                <div class="form-group">
+                    <label class="form-label">Selecciona la Lista</label>
+                    <select id="select-user-lists" class="filter-select" style="width: 100%;" required>
+                        <option value="">Cargando tus listas...</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Añadir a la Lista</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL RESEÑAS COMUNITARIAS (HU-05) -->
+    <div class="modal-overlay" id="modal-reviews">
+        <div class="modal-content" style="max-width: 600px;">
+            <button class="modal-close" data-close="modal-reviews">&times;</button>
+            <h2>Reseñas de la Comunidad</h2>
+            <p id="reviews-game-title" style="color: var(--primary); font-weight: 700; margin-bottom: 1rem;"></p>
+            <div id="reviews-container" style="max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem;">
+                <!-- Opiniones de jugadores -->
             </div>
         </div>
     </div>

@@ -51,8 +51,20 @@ const GameModel = {
             'SELECT DISTINCT platform FROM games ORDER BY platform ASC'
         );
         return rows.map(r => r.platform);
+    },
+
+    async getReviewsByGameId(gameId) {
+        const [rows] = await db.query(
+            `SELECT ul.id, ul.rating, ul.review, ul.updated_at,
+                    u.username, u.avatar
+             FROM user_library ul
+             JOIN users u ON ul.user_id = u.id
+             WHERE ul.game_id = ? AND (ul.review IS NOT NULL AND ul.review != '')
+             ORDER BY ul.updated_at DESC`,
+            [gameId]
+        );
+        return rows;
     }
 };
 
 module.exports = GameModel;
-

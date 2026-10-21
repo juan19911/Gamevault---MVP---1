@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const views = {
         catalog: document.getElementById('view-catalog'),
         library: document.getElementById('view-library'),
+        lists: document.getElementById('view-lists'),
         discovery: document.getElementById('view-discovery'),
         dashboard: document.getElementById('view-dashboard')
     };
@@ -31,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initAuthUI();
     initNavigation();
     initFilters();
+    initListsUI();
     loadCatalog();
 
     // Default session date to today
@@ -199,6 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (viewName === 'catalog') loadCatalog();
         if (viewName === 'library') loadLibrary();
+        if (viewName === 'lists') loadCustomLists();
         if (viewName === 'discovery') loadDiscovery();
         if (viewName === 'dashboard') loadDashboard();
     }
@@ -304,14 +307,32 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span>💻 ${game.platform}</span>
                         </div>
                         <p class="card-synopsis">${game.synopsis || 'Sin descripción disponible.'}</p>
-                        <div class="card-footer">
-                            <span style="font-size: 0.8rem; color: var(--text-muted);">${game.developer || ''}</span>
+                        <div class="card-footer" style="gap: 0.4rem; flex-wrap: wrap;">
+                            <button class="btn btn-secondary btn-sm btn-view-reviews" title="Ver opiniones de la comunidad">
+                                💬 Reseñas
+                            </button>
+                            <button class="btn btn-secondary btn-sm btn-add-list" title="Añadir a lista temática">
+                                📑 Lista
+                            </button>
                             <button class="btn btn-primary btn-sm btn-action-game" data-id="${game.id}">
                                 ${libEntry ? '✏️ Modificar' : '➕ Añadir'}
                             </button>
                         </div>
                     </div>
                 `;
+
+                card.querySelector('.btn-view-reviews').addEventListener('click', () => {
+                    openReviewsModal(game);
+                });
+
+                card.querySelector('.btn-add-list').addEventListener('click', () => {
+                    if (!API.getToken()) {
+                        showToast('Inicia sesión para añadir a tus listas temáticas', true);
+                        openModal('modal-auth');
+                        return;
+                    }
+                    openAddToListModal(game);
+                });
 
                 card.querySelector('.btn-action-game').addEventListener('click', () => {
                     if (!API.getToken()) {
@@ -879,6 +900,285 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (err) {
             console.error('Error cargando estadísticas:', err);
+        }
+    }
+
+
+    // ==========================================
+    // 8.5. CUSTOM LISTS & REVIEWS (HU-05)
+    // ==========================================
+    let currentSelectedListId = null;
+
+    function initListsUI() {
+        const btnOpenCreate = document.getElementById('btn-open-create-list');
+        if (btnOpenCreate) {
+            btnOpenCreate.addEventListener('click', () => {
+                if (!API.getToken()) {
+                    showToast('Inicia sesión para crear listas temáticas', true);
+                    openModal('modal-auth');
+                    return;
+                }
+                document.getElementById('form-create-list').reset();
+                openModal('modal-create-list');
+            });
+        }
+
+        const formCreate = document.getElementById('form-create-list');
+        if (formCreate) {
+            formCreate.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = document.getElementById('new-list-name').value.trim();
+                const description = document.getElementById('new-list-desc').value.trim();
+                try {
+                    await API.createList({ name, description });
+                    closeModal('modal-create-list');
+                    showToast(`Lista "${name}" creada con éxito`);
+                    loadCustomLists();
+                } catch (err) {
+                    showToast(err.message, true);
+                }
+            });
+        }
+
+        const formAddToList = document.getElementById('form-add-to-list');
+        if (formAddToList) {
+            formAddToList.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const gameId = document.getElementById('add-to-list-gameid').value;
+                const listId = document.getElementById('select-user-lists').value;
+                if (!listId) {
+                    showToast('Selecciona una lista válida', true);
+                    return;
+                }
+                try {
+                    await API.addGameToList(listId, gameId);
+                    closeModal('modal-add-to-list');
+                    showToast('¡Videojuego añadido a la lista temática!');
+                } catch (err) {
+                    showToast(err.message, true);
+                }
+            });
+        }
+
+        const btnDeleteList = document.getElementById('btn-delete-current-list');
+        if (btnDeleteList) {
+            btnDeleteList.addEventListener('click', async () => {
+                if (!currentSelectedListId) return;
+                if (confirm('¿Estás seguro de eliminar esta lista temática?')) {
+                    try {
+                        await API.deleteList(currentSelectedListId);
+                        closeModal('modal-list-details');
+                        showToast('Lista temática eliminada');
+                        loadCustomLists();
+                    } catch (err) {
+                        showToast(err.message, true);
+                    }
+                }
+            });
+        }
+    }
+
+    async function loadCustomLists() {
+        const grid = document.getElementById('grid-custom-lists');
+        if (!grid) return;
+
+        if (!API.getToken()) {
+            grid.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
+                    <span style="font-size: 2.5rem; display: block; margin-bottom: 0.5rem;">🔒</span>
+                    Inicia sesión para crear y consultar tus listas temáticas personalizadas.
+                </div>
+            `;
+            return;
+        }
+
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">Cargando tus listas...</div>';
+
+        try {
+            const res = await API.getMyLists();
+            const lists = res.data || [];
+            grid.innerHTML = '';
+
+            if (lists.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
+                        <span style="font-size: 2.5rem; display: block; margin-bottom: 0.5rem;">📑</span>
+                        Aún no tienes listas temáticas creadas. ¡Crea tu primera lista con el botón superior!
+                    </div>
+                `;
+                return;
+            }
+
+            lists.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'kpi-card';
+                card.style.flexDirection = 'column';
+                card.style.alignItems = 'stretch';
+                card.style.gap = '1rem';
+
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <h3 style="font-size: 1.15rem; color: var(--primary); font-weight: 700; margin-bottom: 0.25rem;">${item.name}</h3>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">📅 Creada: ${item.created_at ? item.created_at.split(' ')[0] : 'Reciente'}</span>
+                        </div>
+                        <span class="status-badge" style="background: rgba(99, 102, 241, 0.2); color: var(--primary); border: 1px solid var(--primary);">${item.total_games} juegos</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.4; flex-grow: 1;">
+                        ${item.description || '<em>Sin descripción definida.</em>'}
+                    </p>
+                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
+                        <button class="btn btn-secondary btn-sm btn-view-list" data-id="${item.id}">
+                            👁️ Ver Colección
+                        </button>
+                    </div>
+                `;
+
+                card.querySelector('.btn-view-list').addEventListener('click', () => {
+                    openMemberListModal(item.id);
+                });
+
+                grid.appendChild(card);
+            });
+        } catch (err) {
+            grid.innerHTML = `<div style="grid-column: 1/-1; color: #ef4444; text-align: center;">Error al cargar listas: ${err.message}</div>`;
+        }
+    }
+
+    async function openMemberListModal(listId) {
+        currentSelectedListId = listId;
+        try {
+            const res = await API.getListDetails(listId);
+            const list = res.data;
+
+            document.getElementById('detail-list-title').textContent = list.name;
+            document.getElementById('detail-list-desc').textContent = list.description || 'Sin descripción';
+
+            const container = document.getElementById('detail-list-games');
+            container.innerHTML = '';
+
+            if (!list.games || list.games.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; padding: 1rem 0;">Esta lista no tiene juegos todavía. Puedes agregarlos desde el Catálogo usando el botón 📑 Lista.</div>';
+            } else {
+                list.games.forEach(g => {
+                    const row = document.createElement('div');
+                    row.style.display = 'flex';
+                    row.style.alignItems = 'center';
+                    row.style.justifyContent = 'space-between';
+                    row.style.padding = '0.5rem 0.75rem';
+                    row.style.background = 'var(--bg-card)';
+                    row.style.borderRadius = '6px';
+                    row.style.border = '1px solid var(--border-color)';
+
+                    row.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <img src="${g.cover_url}" alt="${g.title}" style="width: 38px; height: 38px; border-radius: 4px; object-fit: cover;">
+                            <div>
+                                <div style="font-weight: 700; font-size: 0.9rem;">${g.title}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">${g.genre} · ${g.platform}</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-danger btn-sm btn-remove-from-list" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Quitar de la lista">❌</button>
+                    `;
+
+                    row.querySelector('.btn-remove-from-list').addEventListener('click', async () => {
+                        try {
+                            await API.removeGameFromList(listId, g.game_id);
+                            showToast(`"${g.title}" quitado de la lista`);
+                            openMemberListModal(listId);
+                        } catch (err) {
+                            showToast(err.message, true);
+                        }
+                    });
+
+                    container.appendChild(row);
+                });
+            }
+
+            openModal('modal-list-details');
+        } catch (err) {
+            showToast(err.message, true);
+        }
+    }
+
+    async function openAddToListModal(game) {
+        document.getElementById('add-to-list-gameid').value = game.id;
+        document.getElementById('add-to-list-gamename').textContent = `Videojuego: ${game.title}`;
+        const select = document.getElementById('select-user-lists');
+        select.innerHTML = '<option value="">Cargando listas...</option>';
+
+        openModal('modal-add-to-list');
+
+        try {
+            const res = await API.getMyLists();
+            const lists = res.data || [];
+            select.innerHTML = '';
+            if (lists.length === 0) {
+                select.innerHTML = '<option value="">No tienes listas creadas (crea una primero en "Listas Temáticas")</option>';
+            } else {
+                select.innerHTML = '<option value="">-- Elige una lista --</option>';
+                lists.forEach(l => {
+                    const opt = document.createElement('option');
+                    opt.value = l.id;
+                    opt.textContent = `${l.name} (${l.total_games} juegos)`;
+                    select.appendChild(opt);
+                });
+            }
+        } catch (err) {
+            select.innerHTML = '<option value="">Error al cargar listas</option>';
+        }
+    }
+
+    async function openReviewsModal(game) {
+        document.getElementById('reviews-game-title').textContent = `Opiniones sobre "${game.title}"`;
+        const container = document.getElementById('reviews-container');
+        container.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; padding: 1rem 0;">Cargando opiniones de la comunidad...</div>';
+        openModal('modal-reviews');
+
+        try {
+            const res = await API.getGameReviews(game.id);
+            const reviews = res.data || [];
+            container.innerHTML = '';
+
+            if (reviews.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.9rem;">
+                        <span style="font-size: 2rem; display: block; margin-bottom: 0.5rem;">📝</span>
+                        Todavía no hay reseñas escritas para este videojuego.<br>
+                        ¡Sé el primero de la comunidad en dejar tu reseña desde tu biblioteca personal!
+                    </div>
+                `;
+                return;
+            }
+
+            reviews.forEach(r => {
+                const item = document.createElement('div');
+                item.style.padding = '0.85rem';
+                item.style.background = 'var(--bg-card)';
+                item.style.borderRadius = '8px';
+                item.style.border = '1px solid var(--border-color)';
+
+                const stars = r.rating ? '⭐'.repeat(r.rating) : 'Sin calificación';
+
+                item.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <img src="${r.avatar || 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=150'}" alt="${r.username}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;">
+                            <strong style="font-size: 0.85rem; color: #f1f5f9;">${r.username}</strong>
+                        </div>
+                        <span style="font-size: 0.85rem;">${stars}</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.4; margin: 0; font-style: italic;">
+                        "${r.review}"
+                    </p>
+                    <div style="font-size: 0.7rem; color: var(--text-muted); text-align: right; margin-top: 0.3rem;">
+                        ${r.updated_at ? r.updated_at.split(' ')[0] : ''}
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        } catch (err) {
+            container.innerHTML = `<div style="color: #ef4444; font-size: 0.85rem;">Error al cargar reseñas: ${err.message}</div>`;
         }
     }
 

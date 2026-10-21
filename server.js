@@ -13,6 +13,7 @@ const gameRoutes = require('./routes/gameRoutes');
 const libraryRoutes = require('./routes/libraryRoutes');
 const sessionRoutes = require('./routes/sessionRoutes');
 const statsRoutes = require('./routes/statsRoutes');
+const listRoutes = require('./routes/listRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
