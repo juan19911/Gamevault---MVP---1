@@ -62,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
     initFilters();
     initListsUI();
+    initFaqBot();
     loadCatalog();
 
     // Default session date to today
@@ -775,26 +776,32 @@ document.addEventListener('DOMContentLoaded', () => {
         return card;
     }
 
-    // Spin Ruleta Gamer
+    // Spin Ruleta Gamer (HU-07 con animacion y barajado)
     document.getElementById('btn-spin-ruleta').addEventListener('click', async () => {
         const btn = document.getElementById('btn-spin-ruleta');
         const resultBox = document.getElementById('ruleta-result-box');
         const onlyHigh = document.getElementById('check-ruleta-priority').checked;
 
         btn.disabled = true;
-        btn.innerHTML = '<span>🔄</span> Girando la ruleta de pendientes...';
-        resultBox.style.display = 'none';
+        btn.innerHTML = `<svg class="spin-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg> <span>Barajando biblioteca de pendientes...</span>`;
+
+        resultBox.style.display = 'block';
+        resultBox.innerHTML = `
+            <div style="background: var(--bg-card); padding: 1.5rem; border-radius: 12px; border: 1px dashed var(--border-color); color: var(--text-muted); text-align: center;">
+                <div style="font-size: 1.05rem; color: var(--primary); font-weight: 700; margin-bottom: 0.35rem;">Sorteando título...</div>
+                <div style="font-size: 0.85rem;">Consultando backlog y ponderando prioridades de juego</div>
+            </div>
+        `;
 
         try {
             const res = await API.getRandomGame(onlyHigh);
             setTimeout(() => {
                 btn.disabled = false;
-                btn.innerHTML = '<span>✨</span> Girar Ruleta Gamer';
+                btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg> <span>Seleccionar Juego Aleatorio</span>`;
 
                 if (!res.data) {
-                    resultBox.style.display = 'block';
                     resultBox.innerHTML = `
-                        <div style="background: var(--bg-card); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); color: var(--text-muted);">
+                        <div style="background: var(--bg-card); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); color: var(--text-muted); text-align: center;">
                             ${res.message}
                         </div>
                     `;
@@ -802,29 +809,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const game = res.data;
-                resultBox.style.display = 'block';
+                const priorityBadge = game.priority === 'high'
+                    ? '<span style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">Prioridad Alta</span>'
+                    : '<span style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">Prioridad Media</span>';
+
                 resultBox.innerHTML = `
-                    <div style="background: var(--bg-card); border: 2px solid var(--primary); border-radius: 14px; padding: 1.5rem; max-width: 450px; text-align: left; box-shadow: 0 0 25px var(--primary-glow);">
-                        <div style="color: var(--primary); font-weight: 800; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.5rem;">
-                            🎯 Tu próximo juego elegido es:
+                    <div style="background: var(--bg-card); border: 1px solid var(--primary); border-radius: 14px; padding: 1.5rem; max-width: 480px; margin: 0 auto; text-align: left; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);">
+                        <div style="color: var(--primary); font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="12 6 12 12 16 14"></polygon></svg>
+                            <span>Tu Próxima Partida Recomendada</span>
                         </div>
-                        <div style="display: flex; gap: 1rem; align-items: center;">
-                            <img src="${game.cover_url}" style="width: 80px; height: 110px; object-fit: cover; border-radius: 8px;">
-                            <div>
-                                <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.3rem;">${game.title}</h3>
+                        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <div style="position: relative; flex-shrink: 0;">
+                                <img src="${game.cover_url}" alt="${game.title}" style="width: 85px; height: 115px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color);">
+                                <button class="card-zoom-btn btn-zoom-preview" id="btn-zoom-roulette" title="Ampliar portada" style="opacity: 1; top: 4px; left: 4px; width: 28px; height: 28px;">
+                                    ${ICONS.zoom}
+                                </button>
+                            </div>
+                            <div style="flex: 1;">
+                                <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.25rem; color: #fff;">${game.title}</h3>
                                 <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">${game.genre} · ${game.platform}</p>
-                                <span style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">
-                                    Prioridad: ${game.priority}
-                                </span>
+                                <div>${priorityBadge}</div>
                             </div>
                         </div>
-                        <div style="margin-top: 1.25rem; display: flex; gap: 0.5rem;">
-                            <button class="btn btn-primary btn-sm" id="btn-play-chosen" style="flex: 1;">
-                                ▶️ Empezar a Jugar Ahora
+                        <div style="margin-top: 1.25rem; display: flex; gap: 0.6rem;">
+                            <button class="btn btn-primary btn-sm" id="btn-play-chosen" style="flex: 1; gap: 0.5rem;">
+                                ${ICONS.play} <span>Empezar a Jugar Ahora</span>
                             </button>
                         </div>
                     </div>
                 `;
+
+                document.getElementById('btn-zoom-roulette')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openLightboxModal(game);
+                });
 
                 document.getElementById('btn-play-chosen').addEventListener('click', async () => {
                     try {
@@ -835,10 +854,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         showToast(err.message, true);
                     }
                 });
-            }, 800);
+            }, 900);
         } catch (err) {
             btn.disabled = false;
-            btn.innerHTML = '<span>✨</span> Girar Ruleta Gamer';
+            btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line></svg> <span>Seleccionar Juego Aleatorio</span>`;
             showToast(err.message, true);
         }
     });
@@ -1268,5 +1287,115 @@ document.addEventListener('DOMContentLoaded', () => {
             toast.className = 'toast';
         }, 3500);
     }
-});
 
+    // ==========================================
+    // 10. FAQ BOT ASSISTANT (USER ONBOARDING & SUPPORT)
+    // ==========================================
+    const FAQ_KNOWLEDGE_BASE = [
+        {
+            keywords: ['favorito', 'favoritos', 'tope', 'limite', 'perfil', 'destacado', 'destacados', '4'],
+            answer: '⭐ <strong>Tope de 4 Favoritos (HU-02):</strong> Puedes destacar un máximo de 4 videojuegos en la cabecera de tu perfil para lucir tus títulos predilectos. Para marcar uno, haz clic en el botón de estrella de la tarjeta en tu biblioteca. Si ya tienes 4, el sistema te pedirá desmarcar uno antes de fijar otro.'
+        },
+        {
+            keywords: ['lista', 'listas', 'tematica', 'tematicas', 'coleccion', 'colecciones', 'custom'],
+            answer: '📑 <strong>Listas Temáticas (HU-05):</strong> Te permiten agrupar juegos bajo conceptos personalizados (ej. "Joyas de PS2", "Pendientes de terror"). Puedes crearlas en la pestaña <em>Listas Temáticas</em> y luego añadir títulos desde el Catálogo usando el botón <strong>📑 Lista</strong>.'
+        },
+        {
+            keywords: ['bitacora', 'hora', 'horas', 'sesion', 'sesiones', 'partida', 'tiempo'],
+            answer: '⏱️ <strong>Bitácora de Sesiones (HU-04):</strong> En cada tarjeta de tu biblioteca tienes el botón <strong>⏱️ Bitácora</strong>. Al pulsarlo puedes ingresar las horas jugadas en una fecha concreta y notas de progreso. El sistema acumula automáticamente las horas totales.'
+        },
+        {
+            keywords: ['ruleta', 'aleatorio', 'azar', 'indeciso', 'indecision', 'sorteo', 'prioridad'],
+            answer: '🎲 <strong>Asistente de Indecisión / Ruleta (HU-07):</strong> Diseñado para superar la parálisis de elección. Ingresa a <em>Descubrir</em> y presiona <em>Seleccionar Juego Aleatorio</em>. Puedes filtrar exclusivamente juegos con prioridad alta marcando la casilla correspondiente.'
+        },
+        {
+            keywords: ['portada', 'ampliar', 'lupa', 'zoom', 'imagen', 'ver grande'],
+            answer: '🔍 <strong>Visor de Portada (Lightbox):</strong> Pasa el cursor por encima de cualquier portada de juego en el catálogo o biblioteca y presiona el botón de la <strong>lupa con +</strong> para ver la imagen en alta resolución con toda su ficha técnica.'
+        },
+        {
+            keywords: ['demo', 'login', 'iniciar sesion', 'usuario', 'cuenta', 'clave', 'password'],
+            answer: '🔑 <strong>Cuenta de Prueba Demo:</strong><br>• Correo: <code>gamer@tudai.edu.ar</code><br>• Contraseña: <code>gamer123</code><br>También puedes registrarte con una cuenta nueva desde el modal de autenticación.'
+        },
+        {
+            keywords: ['estadisticas', 'kpi', 'dashboard', 'grafico', 'graficos', 'chart'],
+            answer: '📊 <strong>Dashboard y Métricas (HU-06):</strong> En la sección <em>Estadísticas</em> puedes ver en tiempo real el porcentaje de backlog completado, horas totales invertidas, género predilecto y gráficos interactivos generados con Chart.js.'
+        },
+        {
+            keywords: ['resena', 'resenas', 'opinion', 'opiniones', 'comentario', 'calificacion'],
+            answer: '💬 <strong>Reseñas Comunitarias (HU-05):</strong> En el catálogo puedes pulsar <strong>💬 Reseñas</strong> en cualquier juego para consultar calificaciones por estrellas y comentarios dejados por otros gamers de la comunidad.'
+        }
+    ];
+
+    function initFaqBot() {
+        const toggleBtn = document.getElementById('btn-bot-toggle');
+        const panel = document.getElementById('faq-bot-panel');
+        const closeBtn = document.getElementById('btn-bot-close');
+        const chatBody = document.getElementById('faq-bot-chat');
+        const form = document.getElementById('form-bot-input');
+        const input = document.getElementById('bot-input-text');
+
+        if (!toggleBtn || !panel) return;
+
+        toggleBtn.addEventListener('click', () => {
+            const isOpen = panel.style.display !== 'none';
+            panel.style.display = isOpen ? 'none' : 'flex';
+            if (!isOpen) {
+                input.focus();
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+        });
+
+        closeBtn?.addEventListener('click', () => {
+            panel.style.display = 'none';
+        });
+
+        function appendBotMessage(text, isIncoming = true) {
+            const msg = document.createElement('div');
+            msg.className = `bot-msg ${isIncoming ? 'incoming' : 'outgoing'}`;
+            msg.innerHTML = text;
+            chatBody.appendChild(msg);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        // Click on FAQ pills
+        document.querySelectorAll('.faq-pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                const qKey = pill.dataset.q;
+                appendBotMessage(pill.textContent, false);
+
+                setTimeout(() => {
+                    let ans = null;
+                    if (qKey === 'favoritos') ans = FAQ_KNOWLEDGE_BASE[0].answer;
+                    else if (qKey === 'listas') ans = FAQ_KNOWLEDGE_BASE[1].answer;
+                    else if (qKey === 'bitacora') ans = FAQ_KNOWLEDGE_BASE[2].answer;
+                    else if (qKey === 'ruleta') ans = FAQ_KNOWLEDGE_BASE[3].answer;
+                    else if (qKey === 'portada') ans = FAQ_KNOWLEDGE_BASE[4].answer;
+                    else if (qKey === 'demo') ans = FAQ_KNOWLEDGE_BASE[5].answer;
+                    appendBotMessage(ans || 'No tengo respuesta para esa opción.', true);
+                }, 300);
+            });
+        });
+
+        form?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const query = input.value.trim().toLowerCase();
+            if (!query) return;
+
+            appendBotMessage(input.value.trim(), false);
+            input.value = '';
+
+            setTimeout(() => {
+                let match = FAQ_KNOWLEDGE_BASE.find(item => 
+                    item.keywords.some(kw => query.includes(kw))
+                );
+
+                if (match) {
+                    appendBotMessage(match.answer, true);
+                } else {
+                    appendBotMessage(`No estoy seguro de entender tu pregunta sobre "${query}". ¿Quizás te refieras a alguna de estas opciones?<br>• Escribe <strong>"favoritos"</strong> para conocer el límite de 4 títulos.<br>• Escribe <strong>"listas"</strong> para organizar colecciones.<br>• Escribe <strong>"bitacora"</strong> para saber cómo registrar horas.<br>• Escribe <strong>"ruleta"</strong> para ver el selector aleatorio.`, true);
+                }
+            }, 350);
+        });
+    }
+
+});
