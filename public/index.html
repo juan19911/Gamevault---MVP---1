@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GameVault - Tracker de Videojuegos & Backlog (TUDAI)</title>
+    <!-- Favicon del Joystick Verde GameVault -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="alternate icon" type="image/x-icon" href="/favicon.ico">
     <!-- Chart.js para analíticas interactivas (HU-06) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="/css/styles.css">
@@ -13,25 +16,37 @@
     <!-- NAVBAR -->
     <header class="navbar">
         <div class="brand" id="brand-logo">
-            <span class="brand-icon">🎮</span>
+            <span class="brand-crest">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="6" width="20" height="12" rx="3"></rect>
+                    <path d="M6 12h4m-2-2v4"></path>
+                    <circle cx="15.5" cy="11.5" r="1" fill="currentColor"></circle>
+                    <circle cx="18" cy="13.5" r="1" fill="currentColor"></circle>
+                </svg>
+            </span>
             <span>GameVault</span>
         </div>
 
         <nav class="nav-links">
             <button class="nav-btn active" id="nav-catalog" data-view="catalog">
-                <span>📚</span> Catálogo
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                <span>Catálogo</span>
             </button>
             <button class="nav-btn" id="nav-library" data-view="library">
-                <span>🕹️</span> Mi Biblioteca
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                <span>Mi Biblioteca</span>
             </button>
             <button class="nav-btn" id="nav-lists" data-view="lists">
-                <span>📑</span> Listas Temáticas
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                <span>Listas Temáticas</span>
             </button>
             <button class="nav-btn" id="nav-discovery" data-view="discovery">
-                <span>🎲</span> Descubrir / Ruleta
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+                <span>Descubrir</span>
             </button>
             <button class="nav-btn" id="nav-dashboard" data-view="dashboard">
-                <span>📊</span> Estadísticas
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                <span>Estadísticas</span>
             </button>
         </nav>
 
@@ -43,7 +58,8 @@
                 </div>
             </div>
             <button class="btn btn-primary btn-sm" id="btn-open-auth">
-                <span>🔑</span> Iniciar Sesión
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                <span>Iniciar Sesión</span>
             </button>
         </div>
     </header>
@@ -60,7 +76,7 @@
                 </div>
                 <div class="filters-bar">
                     <div class="search-input-wrap">
-                        <span class="search-icon">🔍</span>
+                        <span class="search-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
                         <input type="text" id="input-search" class="search-input" placeholder="Buscar por título o desarrollador...">
                     </div>
                     <select id="filter-genre" class="filter-select">
@@ -86,7 +102,7 @@
                 </div>
                 <div class="filters-bar">
                     <div class="search-input-wrap">
-                        <span class="search-icon">🔍</span>
+                        <span class="search-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
                         <input type="text" id="library-search" class="search-input" placeholder="Buscar en mi biblioteca...">
                     </div>
                     <select id="filter-library-priority" class="filter-select">
@@ -121,9 +137,9 @@
             </div>
 
             <div class="ruleta-box">
-                <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem;">🎲 ¿No sabes a qué jugar hoy?</h2>
-                <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 1.5rem auto;">
-                    Presiona el botón para seleccionar aleatoriamente un título de tus juegos pendientes, o filtra solo aquellos que marcaste con alta prioridad.
+                <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem; letter-spacing: -0.02em;">¿Indeciso sobre qué jugar?</h2>
+                <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 1.5rem auto; font-size: 0.95rem;">
+                    Selecciona aleatoriamente un título de tu backlog de pendientes o filtra exclusivamente títulos de alta prioridad.
                 </p>
 
                 <div style="display: flex; justify-content: center; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
@@ -133,8 +149,9 @@
                     </label>
                 </div>
 
-                <button class="btn btn-primary" id="btn-spin-ruleta" style="font-size: 1.1rem; padding: 0.8rem 2rem;">
-                    <span>✨</span> Girar Ruleta Gamer
+                <button class="btn btn-primary" id="btn-spin-ruleta" style="font-size: 1rem; padding: 0.8rem 2rem; gap: 0.6rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+                    <span>Seleccionar Juego Aleatorio</span>
                 </button>
 
                 <div class="ruleta-result" id="ruleta-result-box" style="display: none;">
@@ -144,7 +161,7 @@
 
             <div style="margin-top: 3rem;">
                 <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 1.25rem;">
-                    💡 Basado en tu Género Más Jugado (<span id="recom-genre-name" style="color: var(--primary);">Detectando...</span>)
+                    Sugerencias por tu Género Más Jugado (<span id="recom-genre-name" style="color: var(--primary);">Detectando...</span>)
                 </h2>
                 <div id="grid-recom-genre" class="games-grid">
                     <!-- Recomendaciones -->
@@ -153,7 +170,7 @@
 
             <div style="margin-top: 3rem;">
                 <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 1.25rem;">
-                    ⭐ Más Valorados por la Comunidad
+                    Títulos Más Valorados por la Comunidad
                 </h2>
                 <div id="grid-recom-community" class="games-grid">
                     <!-- Destacados comunitarios -->
@@ -173,7 +190,9 @@
             <!-- KPIs -->
             <div class="kpi-row">
                 <div class="kpi-card">
-                    <div class="kpi-icon">📚</div>
+                    <div class="kpi-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    </div>
                     <div>
                         <div class="kpi-value" id="kpi-total-games">0</div>
                         <div class="kpi-label">Juegos en Biblioteca</div>
@@ -181,7 +200,9 @@
                 </div>
 
                 <div class="kpi-card">
-                    <div class="kpi-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">🏆</div>
+                    <div class="kpi-icon" style="background: rgba(59, 130, 246, 0.12); color: #60a5fa;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+                    </div>
                     <div>
                         <div class="kpi-value" id="kpi-completed-pct">0%</div>
                         <div class="kpi-label">Backlog Completado</div>
@@ -189,7 +210,9 @@
                 </div>
 
                 <div class="kpi-card">
-                    <div class="kpi-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">⏱️</div>
+                    <div class="kpi-icon" style="background: rgba(245, 158, 11, 0.12); color: #fbbf24;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    </div>
                     <div>
                         <div class="kpi-value" id="kpi-total-hours">0h</div>
                         <div class="kpi-label">Horas Totales Invertidas</div>
@@ -197,7 +220,9 @@
                 </div>
 
                 <div class="kpi-card">
-                    <div class="kpi-icon" style="background: rgba(121, 40, 202, 0.1); color: #a855f7;">🎯</div>
+                    <div class="kpi-icon" style="background: rgba(168, 85, 247, 0.12); color: #c084fc;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                    </div>
                     <div>
                         <div class="kpi-value" id="kpi-dominant-genre">-</div>
                         <div class="kpi-label">Género Predilecto</div>
@@ -209,7 +234,7 @@
             <div class="charts-grid">
                 <div class="chart-card">
                     <div class="chart-title">
-                        <span>📊</span> Distribución por Estado de Backlog
+                        Distribución por Estado de Backlog
                     </div>
                     <div style="height: 280px; position: relative;">
                         <canvas id="chart-status-backlog"></canvas>
@@ -218,7 +243,7 @@
 
                 <div class="chart-card">
                     <div class="chart-title">
-                        <span>📈</span> Distribución de Juegos por Género
+                        Distribución de Juegos por Género
                     </div>
                     <div style="height: 280px; position: relative;">
                         <canvas id="chart-genre-distribution"></canvas>
@@ -229,7 +254,7 @@
             <!-- TOP JUEGOS MÁS JUGADOS -->
             <div class="chart-card" style="margin-top: 1.5rem;">
                 <div class="chart-title">
-                    <span>🔥</span> Top 5 Videojuegos con Mayor Tiempo Invertido
+                    Top 5 Videojuegos con Mayor Tiempo Invertido
                 </div>
                 <div id="top-games-list" style="display: flex; flex-direction: column; gap: 0.8rem;">
                     <!-- Renderizado dinámicamente -->
@@ -245,7 +270,7 @@
                     <p>Crea y gestiona colecciones personalizadas de juegos (HU-05).</p>
                 </div>
                 <button class="btn btn-primary" id="btn-open-create-list">
-                    <span>➕</span> Nueva Lista Temática
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg><span>Nueva Lista Temática</span>
                 </button>
             </div>
 
@@ -423,7 +448,7 @@
             <p id="profile-bio" style="font-size: 0.9rem; line-height: 1.5; color: #cbd5e1; margin-bottom: 1.5rem; background: var(--bg-card); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);"></p>
 
             <h3 style="font-size: 1.05rem; font-weight: 800; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-                <span>⭐</span> Mis 4 Videojuegos Favoritos (Destacados de Perfil)
+                Mis 4 Videojuegos Favoritos (Destacados en Perfil)
             </h3>
             <div id="profile-favorites-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1.5rem;">
                 <!-- 4 Slots de favoritos -->
@@ -498,6 +523,31 @@
             <p id="reviews-game-title" style="color: var(--primary); font-weight: 700; margin-bottom: 1rem;"></p>
             <div id="reviews-container" style="max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem;">
                 <!-- Opiniones de jugadores -->
+            </div>
+        </div>
+    </div>
+
+        <!-- MODAL VISTA AMPLIADA DE PORTADA (LIGHTBOX) -->
+    <div class="modal-overlay" id="modal-cover-preview">
+        <div class="modal-content modal-lightbox">
+            <button class="modal-close" data-close="modal-cover-preview" aria-label="Cerrar">&times;</button>
+            <div class="lightbox-grid">
+                <div class="lightbox-img-wrap">
+                    <img id="lightbox-img" src="" alt="Portada ampliada" class="lightbox-img">
+                </div>
+                <div class="lightbox-info">
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.85rem; flex-wrap: wrap;">
+                        <span id="lightbox-genre" class="badge-tag"></span>
+                        <span id="lightbox-platform" class="badge-tag"></span>
+                        <span id="lightbox-year" class="badge-tag"></span>
+                    </div>
+                    <h2 id="lightbox-title" style="font-size: 1.6rem; font-weight: 800; margin-bottom: 0.35rem; color: #fff;"></h2>
+                    <p id="lightbox-dev" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem; font-weight: 500;"></p>
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-bottom: 1.5rem;">
+                        <h4 style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 0.6rem;">Sinopsis</h4>
+                        <p id="lightbox-synopsis" style="font-size: 0.92rem; color: #cbd5e1; line-height: 1.6;"></p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

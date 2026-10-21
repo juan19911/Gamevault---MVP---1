@@ -4,6 +4,35 @@
 // ===================================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    // ==========================================
+    // UNIFIED VECTOR ICONS & LIGHTBOX (SOBER & PROFESSIONAL)
+    // ==========================================
+    const ICONS = {
+        zoom: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>`,
+        reviews: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`,
+        list: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>`,
+        plus: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`,
+        edit: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
+        trash: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`,
+        clock: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`,
+        starSolid: `<svg width="14" height="14" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`,
+        starOutline: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`,
+        play: `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`
+    };
+
+    function openLightboxModal(game) {
+        const modal = document.getElementById('modal-cover-preview');
+        if (!modal) return;
+        document.getElementById('lightbox-img').src = game.cover_url || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600';
+        document.getElementById('lightbox-title').textContent = game.title || 'Detalle del Juego';
+        document.getElementById('lightbox-genre').textContent = game.genre || 'Género N/A';
+        document.getElementById('lightbox-platform').textContent = game.platform || 'Multiplataforma';
+        document.getElementById('lightbox-year').textContent = game.release_year ? `Lanzamiento: ${game.release_year}` : '';
+        document.getElementById('lightbox-dev').textContent = game.developer ? `Desarrollador: ${game.developer}` : '';
+        document.getElementById('lightbox-synopsis').textContent = game.synopsis || game.review || 'Sin sinopsis disponible.';
+        openModal('modal-cover-preview');
+    }
+
     // State
     let currentView = 'catalog';
     let libraryStatusFilter = 'all';
@@ -298,28 +327,36 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="card-img-wrap">
                         <img src="${game.cover_url}" alt="${game.title}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=300'">
                         ${badgeHtml}
+                        <button class="card-zoom-btn btn-zoom-preview" title="Ampliar portada" aria-label="Ampliar portada">
+                            ${ICONS.zoom}
+                        </button>
                     </div>
                     <div class="card-body">
                         <h3 class="card-title">${game.title}</h3>
                         <div class="card-meta">
-                            <span>🎮 ${game.genre}</span>
-                            <span>📅 ${game.release_year || 'N/A'}</span>
-                            <span>💻 ${game.platform}</span>
+                            <span>${game.genre}</span>
+                            <span>${game.release_year || 'N/A'}</span>
+                            <span>${game.platform}</span>
                         </div>
                         <p class="card-synopsis">${game.synopsis || 'Sin descripción disponible.'}</p>
                         <div class="card-footer" style="gap: 0.4rem; flex-wrap: wrap;">
                             <button class="btn btn-secondary btn-sm btn-view-reviews" title="Ver opiniones de la comunidad">
-                                💬 Reseñas
+                                ${ICONS.reviews} <span>Reseñas</span>
                             </button>
                             <button class="btn btn-secondary btn-sm btn-add-list" title="Añadir a lista temática">
-                                📑 Lista
+                                ${ICONS.list} <span>Lista</span>
                             </button>
                             <button class="btn btn-primary btn-sm btn-action-game" data-id="${game.id}">
-                                ${libEntry ? '✏️ Modificar' : '➕ Añadir'}
+                                ${libEntry ? ICONS.edit + ' <span>Modificar</span>' : ICONS.plus + ' <span>Añadir</span>'}
                             </button>
                         </div>
                     </div>
                 `;
+
+                card.querySelector('.btn-zoom-preview').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openLightboxModal(game);
+                });
 
                 card.querySelector('.btn-view-reviews').addEventListener('click', () => {
                     openReviewsModal(game);
@@ -423,16 +460,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
 
                 const priorityBadges = {
-                    high: '<span style="color: #ef4444; font-weight: bold;">🔥 Alta</span>',
-                    medium: '<span style="color: #f59e0b;">⚖️ Media</span>',
-                    low: '<span style="color: #9ca3af;">💤 Baja</span>'
+                    high: '<span style="color: #ef4444; font-weight: 600;">Alta</span>',
+                    medium: '<span style="color: #f59e0b; font-weight: 600;">Media</span>',
+                    low: '<span style="color: #94a3b8; font-weight: 500;">Baja</span>'
                 };
 
                 // Stars display
                 let starsHtml = '';
                 if (item.rating) {
                     for (let s = 1; s <= 5; s++) {
-                        starsHtml += `<span style="color: ${s <= item.rating ? 'var(--star-gold)' : '#4b5563'}">★</span>`;
+                        starsHtml += `<span style="color: ${s <= item.rating ? 'var(--star-gold)' : '#334155'}">★</span>`;
                     }
                 } else {
                     starsHtml = '<span style="color: var(--text-muted); font-size: 0.8rem;">Sin calificar</span>';
@@ -442,14 +479,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="card-img-wrap">
                         <img src="${item.cover_url}" alt="${item.title}" class="card-img">
                         <span class="status-badge badge-${item.status}">${statusLabels[item.status] || item.status}</span>
+                        <button class="card-zoom-btn btn-zoom-preview" title="Ampliar portada" aria-label="Ampliar portada">
+                            ${ICONS.zoom}
+                        </button>
                     </div>
                     <div class="card-body">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;">
                             <h3 class="card-title">${item.title}</h3>
-                            ${item.is_favorite ? '<span title="Favorito en tu perfil" style="font-size: 1.1rem;">⭐</span>' : ''}
+                            ${item.is_favorite ? `<span title="Destacado en perfil" style="display: inline-flex; align-items: center;">${ICONS.starSolid}</span>` : ''}
                         </div>
                         <div class="card-meta">
-                            <span>⏱️ ${item.hours_played} hs</span>
+                            <span>${item.hours_played} hs</span>
                             <span>${priorityBadges[item.priority] || item.priority}</span>
                             <span>${item.genre}</span>
                         </div>
@@ -459,21 +499,26 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${item.review ? `<p class="card-synopsis" style="font-style: italic; color: #94a3b8;">"${item.review}"</p>` : ''}
                         
                         <div class="card-footer" style="gap: 0.4rem; flex-wrap: wrap;">
-                            <button class="btn ${item.is_favorite ? 'btn-primary' : 'btn-secondary'} btn-sm btn-fav-toggle" title="${item.is_favorite ? 'Quitar de favoritos' : 'Fijar en perfil (máx 4)'}">
-                                ${item.is_favorite ? '⭐' : '☆'}
+                            <button class="btn ${item.is_favorite ? 'btn-primary' : 'btn-secondary'} btn-sm btn-fav-toggle" title="${item.is_favorite ? 'Quitar de destacados' : 'Fijar en perfil (máx 4)'}">
+                                ${item.is_favorite ? ICONS.starSolid : ICONS.starOutline} <span>${item.is_favorite ? 'Favorito' : 'Fijar'}</span>
                             </button>
                             <button class="btn btn-secondary btn-sm btn-session" title="Registrar horas de juego">
-                                ⏱️ Bitácora
+                                ${ICONS.clock} <span>Bitácora</span>
                             </button>
                             <button class="btn btn-secondary btn-sm btn-edit-entry" title="Modificar estado o reseña">
-                                ✏️ Editar
+                                ${ICONS.edit} <span>Editar</span>
                             </button>
                             <button class="btn btn-danger btn-sm btn-delete-entry" title="Quitar de la biblioteca">
-                                🗑️
+                                ${ICONS.trash}
                             </button>
                         </div>
                     </div>
                 `;
+
+                card.querySelector('.btn-zoom-preview').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openLightboxModal(item);
+                });
 
                 // Event handlers
                 card.querySelector('.btn-fav-toggle').addEventListener('click', async () => {
@@ -702,21 +747,28 @@ document.addEventListener('DOMContentLoaded', () => {
         card.innerHTML = `
             <div class="card-img-wrap">
                 <img src="${game.cover_url}" alt="${game.title}" class="card-img">
-                ${extraBadge ? `<span class="status-badge" style="background: var(--star-gold); color: #000;">${extraBadge}</span>` : ''}
+                ${extraBadge ? `<span class="status-badge" style="background: rgba(251, 191, 36, 0.9); color: #090d16;">${extraBadge}</span>` : ''}
+                <button class="card-zoom-btn btn-zoom-preview" title="Ampliar portada" aria-label="Ampliar portada">
+                    ${ICONS.zoom}
+                </button>
             </div>
             <div class="card-body">
                 <h3 class="card-title">${game.title}</h3>
                 <div class="card-meta">
-                    <span>🎮 ${game.genre}</span>
-                    <span>💻 ${game.platform}</span>
+                    <span>${game.genre}</span>
+                    <span>${game.platform}</span>
                 </div>
                 <div class="card-footer">
-                    <button class="btn btn-primary btn-sm btn-quick-add" style="width: 100%;">
-                        ➕ Añadir a mi Biblioteca
+                    <button class="btn btn-primary btn-sm btn-quick-add" style="width: 100%; gap: 0.4rem;">
+                        ${ICONS.plus} <span>Añadir a mi Biblioteca</span>
                     </button>
                 </div>
             </div>
         `;
+        card.querySelector('.btn-zoom-preview').addEventListener('click', (e) => {
+            e.stopPropagation();
+            openLightboxModal(game);
+        });
         card.querySelector('.btn-quick-add').addEventListener('click', () => {
             openGameFormModal(game);
         });
