@@ -97,12 +97,15 @@ async function initDatabase() {
 }
 
 async function seedInitialData() {
-    // Ensure role column exists (safe migration)
+    // Ensure role and status columns exist (safe migration)
     try {
         const [cols] = await db.query("PRAGMA table_info(users)");
-        const hasRole = Array.isArray(cols) && cols.some(c => c.name === 'role');
-        if (!hasRole) {
+        const colNames = Array.isArray(cols) ? cols.map(c => c.name) : [];
+        if (!colNames.includes('role')) {
             await db.query("ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'user'");
+        }
+        if (!colNames.includes('status')) {
+            await db.query("ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'active'");
         }
     } catch (e) {
         // Safe fallback for MySQL or other drivers

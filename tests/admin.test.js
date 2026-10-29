@@ -167,5 +167,126 @@ describe('Panel de Administración y Control de Acceso por Roles (RBAC)', () => 
         assert.strictEqual(data.success, true);
         assert.ok(data.url.startsWith('/uploads/covers/cover_'));
     });
+
+    let createdTestUserId = null;
+    let createdTestUserToken = null;
+
+    test('POST /api/admin/users debe permitir al admin crear una cuenta de usuario con rol y estado', async () => {
+        const res = await fetch(`${baseUrl}/api/admin/users`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${adminToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: 'UsuarioPruebaCRUD',
+                email: 'testcrud@gamevault.com',
+                password: 'password123',
+                role: 'user',
+                status: 'active',
+                platform: 'PC'
+            })
+        });
+
+        assert.strictEqual(res.status, 201);
+        const data = await res.json();
+        assert.strictEqual(data.success, true);
+        assert.ok(data.data.id);
+        assert.strictEqual(data.data.username, 'UsuarioPruebaCRUD');
+        assert.strictEqual(data.data.status, 'active');
+        createdTestUserId = data.data.id;
+
+        // Login with new user to get token
+        const loginRes = await fetch(`${baseUrl}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: 'testcrud@gamevault.com', password: 'password123' })
+        });
+        const loginData = await loginRes.json();
+        createdTestUserToken = loginData.token;
+    });
+
+    test('PUT /api/admin/users/:id debe permitir modificar datos del usuario', async () => {
+        assert.ok(createdTestUserId);
+
+        const res = await fetch(`${baseUrl}/api/admin/users/${createdTestUserId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${adminToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: 'UsuarioPruebaModificado',
+                platform: 'PlayStation 5'
+            })
+        });
+
+        assert.strictEqual(res.status, 200);
+        const data = await res.json();
+        assert.strictEqual(data.success, true);
+        assert.strictEqual(data.data.username, 'UsuarioPruebaModificado');
+        assert.strictEqual(data.data.platform, 'PlayStation 5');
+    });
+
+    test('PUT /api/admin/users/:id/status debe banear al usuario y bloquear sus interacciones (HTTP 403)', async () => {
+        assert.ok(createdTestUserId);
+        assert.ok(createdTestUserToken);
+
+        // 1. Admin bans the user
+        const banRes = await fetch(`${baseUrl}/api/admin/users/${createdTestUserId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${adminToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: 'banned' })
+        });
+        assert.strictEqual(banRes.status, 200);
+        const banData = await banRes.json();
+        assert.strictEqual(banData.data.status, 'banned');
+
+        // 2. Banned user attempts to perform interaction (e.g. adding game to library) -> MUST be blocked with 403
+        const actionRes = await fetch(`${baseUrl}/api/library`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${createdTestUserToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ game_id: 1, status: 'playing' })
+        });
+        assert.strictEqual(actionRes.status, 403);
+        const actionData = await actionRes.json();
+        assert.strictEqual(actionData.banned, true);
+    });
+
+    test('PUT /api/admin/users/:id/status debe permitir desbanear al usuario', async () => {
+        assert.ok(createdTestUserId);
+
+        const res = await fetch(`${baseUrl}/api/admin/users/${createdTestUserId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${adminToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: 'active' })
+        });
+
+        assert.strictEqual(res.status, 200);
+        const data = await res.json();
+        assert.strictEqual(data.data.status, 'active');
+    });
+
+    test('DELETE /api/admin/users/:id debe permitir eliminar al usuario', async () => {
+        assert.ok(createdTestUserId);
+
+        const res = await fetch(`${baseUrl}/api/admin/users/${createdTestUserId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+
+        assert.strictEqual(res.status, 200);
+        const data = await res.json();
+        assert.strictEqual(data.success, true);
+    });
 });
 

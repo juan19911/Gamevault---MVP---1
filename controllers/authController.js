@@ -86,7 +86,7 @@ const AuthController = {
             }
 
             const token = jwt.sign(
-                { id: user.id, username: user.username, email: user.email, role: user.role },
+                { id: user.id, username: user.username, email: user.email, role: user.role, status: user.status || 'active' },
                 process.env.JWT_SECRET || 'gamevault_super_secret_jwt_key_2026_tudai',
                 { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
             );
@@ -102,7 +102,8 @@ const AuthController = {
                     avatar: user.avatar,
                     bio: user.bio,
                     platform: user.platform,
-                    role: user.role
+                    role: user.role,
+                    status: user.status || 'active'
                 }
             });
         } catch (err) {

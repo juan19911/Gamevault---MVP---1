@@ -79,6 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function initAuthUI() {
         const user = API.getUser();
         const navAdmin = document.getElementById('nav-admin');
+        const bannerBanned = document.getElementById('banner-banned');
+
         if (user && API.getToken()) {
             userLoggedBox.style.display = 'flex';
             btnOpenAuth.style.display = 'none';
@@ -90,10 +92,18 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (navAdmin) {
                 navAdmin.style.display = 'none';
             }
+
+            // Cartel en rojo si el usuario ha sido baneado
+            if (user.status === 'banned') {
+                if (bannerBanned) bannerBanned.style.display = 'flex';
+            } else {
+                if (bannerBanned) bannerBanned.style.display = 'none';
+            }
         } else {
             userLoggedBox.style.display = 'none';
             btnOpenAuth.style.display = 'inline-flex';
             if (navAdmin) navAdmin.style.display = 'none';
+            if (bannerBanned) bannerBanned.style.display = 'none';
         }
     }
 
@@ -1586,6 +1596,87 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Search & genre filter in admin catalog
+        // Search and filter for users in admin panel
+        const adminSearchUsers = document.getElementById('admin-search-users');
+        if (adminSearchUsers) {
+            adminSearchUsers.addEventListener('input', () => {
+                clearTimeout(adminUsersDebounce);
+                adminUsersDebounce = setTimeout(() => {
+                    loadAdminUsers();
+                }, 300);
+            });
+        }
+
+        const adminFilterStatus = document.getElementById('admin-filter-user-status');
+        if (adminFilterStatus) {
+            adminFilterStatus.addEventListener('change', () => loadAdminUsers());
+        }
+
+        // Add User Button
+        const btnAddUser = document.getElementById('btn-admin-add-user');
+        if (btnAddUser) {
+            btnAddUser.addEventListener('click', () => {
+                document.getElementById('form-admin-user').reset();
+                document.getElementById('admin-user-id').value = '';
+                document.getElementById('admin-user-password').setAttribute('required', 'true');
+                document.getElementById('admin-user-pass-label').textContent = 'Contraseña *';
+                document.getElementById('admin-user-pass-hint').style.display = 'none';
+                document.getElementById('modal-admin-user-title').innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                    <span>Crear Nuevo Usuario</span>
+                `;
+                openModal('modal-admin-user');
+            });
+        }
+
+        const btnCancelAdminUser = document.getElementById('btn-cancel-admin-user');
+        if (btnCancelAdminUser) {
+            btnCancelAdminUser.addEventListener('click', (e) => {
+                e.preventDefault();
+                closeModal('modal-admin-user');
+            });
+        }
+
+        // Form Submit Admin User (Create / Update)
+        const formAdminUser = document.getElementById('form-admin-user');
+        if (formAdminUser) {
+            formAdminUser.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const userId = document.getElementById('admin-user-id').value;
+                const username = document.getElementById('admin-user-username').value.trim();
+                const email = document.getElementById('admin-user-email').value.trim();
+                const password = document.getElementById('admin-user-password').value;
+                const role = document.getElementById('admin-user-role').value;
+                const status = document.getElementById('admin-user-status').value;
+                const platform = document.getElementById('admin-user-platform').value;
+
+                const payload = { username, email, role, status, platform };
+                if (password) payload.password = password;
+
+                const btnSave = document.getElementById('btn-save-admin-user');
+                btnSave.disabled = true;
+                btnSave.textContent = 'Guardando...';
+
+                try {
+                    if (userId) {
+                        await API.updateAdminUser(userId, payload);
+                        showToast(`Usuario "${username}" actualizado exitosamente.`);
+                    } else {
+                        await API.createAdminUser(payload);
+                        showToast(`¡Usuario "${username}" creado exitosamente!`);
+                    }
+                    closeModal('modal-admin-user');
+                    loadAdminUsers();
+                    loadAdminStats();
+                } catch (err) {
+                    showToast(err.message || 'Error al guardar usuario', 'error');
+                } finally {
+                    btnSave.disabled = false;
+                    btnSave.textContent = 'Guardar Usuario';
+                }
+            });
+        }
+
         const adminSearch = document.getElementById('admin-search-catalog');
         if (adminSearch) {
             adminSearch.addEventListener('input', () => {
@@ -1907,23 +1998,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    let cachedAdminUsers = [];
+    let adminUsersDebounce = null;
+
     async function loadAdminUsers() {
         const tbody = document.getElementById('admin-users-tbody');
         if (!tbody) return;
 
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">Cargando usuarios registrados...</td></tr>`;
+        const search = (document.getElementById('admin-search-users')?.value || '').toLowerCase().trim();
+        const filterStatus = document.getElementById('admin-filter-user-status')?.value || '';
+
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-muted);">Cargando usuarios registrados...</td></tr>`;
 
         try {
             const res = await API.getAdminUsers();
-            const users = res.data || [];
+            cachedAdminUsers = res.data || [];
 
-            if (users.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">No hay usuarios registrados.</td></tr>`;
+            let filtered = cachedAdminUsers;
+
+            if (search) {
+                filtered = filtered.filter(u => 
+                    (u.username && u.username.toLowerCase().includes(search)) ||
+                    (u.email && u.email.toLowerCase().includes(search))
+                );
+            }
+
+            if (filterStatus === 'active') {
+                filtered = filtered.filter(u => u.status !== 'banned');
+            } else if (filterStatus === 'banned') {
+                filtered = filtered.filter(u => u.status === 'banned');
+            } else if (filterStatus === 'admin') {
+                filtered = filtered.filter(u => u.role === 'admin');
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-muted);">No se encontraron usuarios coincidentes.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = users.map(u => `
-                <tr style="border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+            tbody.innerHTML = filtered.map(u => `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.15s; ${u.status === 'banned' ? 'background: rgba(239, 68, 68, 0.05);' : ''}" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='${u.status === 'banned' ? 'rgba(239, 68, 68, 0.05)' : 'transparent'}'">
                     <td style="padding: 0.75rem 1rem; color: var(--text-muted); font-weight: 700;">#${u.id}</td>
                     <td style="padding: 0.75rem 1rem;">
                         <div style="display: flex; align-items: center; gap: 0.6rem;">
@@ -1938,14 +2052,56 @@ document.addEventListener('DOMContentLoaded', () => {
                             ? '<span class="badge-tag" style="background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.4); font-weight: 700;">🛡️ ADMIN</span>' 
                             : '<span class="badge-tag" style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">👤 USER</span>'}
                     </td>
+                    <td style="padding: 0.75rem 1rem;">
+                        ${u.status === 'banned'
+                            ? '<span class="badge-tag" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.5); font-weight: 800;">🚫 BANEADO</span>'
+                            : '<span class="badge-tag" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); font-weight: 700;">🟢 ACTIVO</span>'}
+                    </td>
                     <td style="padding: 0.75rem 1rem; font-weight: 700; color: #00dfa2;">${u.total_games || 0}</td>
                     <td style="padding: 0.75rem 1rem; text-align: right;">
-                        <button class="btn btn-secondary btn-sm btn-toggle-role" data-id="${u.id}" data-role="${u.role}" style="font-size: 0.75rem;">
-                            ${u.role === 'admin' ? 'Degradar a User' : 'Hacer Admin'}
-                        </button>
+                        <div style="display: inline-flex; gap: 0.35rem; flex-wrap: wrap; justify-content: flex-end;">
+                            <button class="btn btn-secondary btn-sm btn-edit-user" data-id="${u.id}" title="Modificar Usuario" style="font-size: 0.72rem; padding: 0.25rem 0.55rem;">
+                                ✏️ Editar
+                            </button>
+                            <button class="btn btn-secondary btn-sm btn-toggle-role" data-id="${u.id}" data-role="${u.role}" title="Cambiar Rol" style="font-size: 0.72rem; padding: 0.25rem 0.55rem;">
+                                ${u.role === 'admin' ? 'Hacer User' : 'Hacer Admin'}
+                            </button>
+                            <button class="btn btn-sm btn-toggle-ban ${u.status === 'banned' ? 'btn-secondary' : 'btn-danger'}" data-id="${u.id}" data-status="${u.status || 'active'}" data-username="${u.username}" title="${u.status === 'banned' ? 'Desbanear Usuario' : 'Banear Usuario'}" style="font-size: 0.72rem; padding: 0.25rem 0.55rem;">
+                                ${u.status === 'banned' ? '🟢 Desbanear' : '⛔ Banear'}
+                            </button>
+                            <button class="btn btn-danger btn-sm btn-del-user" data-id="${u.id}" data-username="${u.username}" title="Eliminar Usuario" style="font-size: 0.72rem; padding: 0.25rem 0.55rem;">
+                                🗑️
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
+
+            // Listeners for CRUD actions
+            tbody.querySelectorAll('.btn-edit-user').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = Number(btn.dataset.id);
+                    const user = cachedAdminUsers.find(u => u.id === id);
+                    if (!user) return;
+
+                    document.getElementById('admin-user-id').value = user.id;
+                    document.getElementById('admin-user-username').value = user.username;
+                    document.getElementById('admin-user-email').value = user.email;
+                    document.getElementById('admin-user-password').value = '';
+                    document.getElementById('admin-user-password').removeAttribute('required');
+                    document.getElementById('admin-user-pass-label').textContent = 'Nueva Contraseña (Opcional)';
+                    document.getElementById('admin-user-pass-hint').style.display = 'block';
+                    document.getElementById('admin-user-role').value = user.role || 'user';
+                    document.getElementById('admin-user-status').value = user.status || 'active';
+                    document.getElementById('admin-user-platform').value = user.platform || 'PC';
+
+                    document.getElementById('modal-admin-user-title').innerHTML = `
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        <span>Modificar Usuario #${user.id}</span>
+                    `;
+                    openModal('modal-admin-user');
+                });
+            });
 
             tbody.querySelectorAll('.btn-toggle-role').forEach(btn => {
                 btn.addEventListener('click', async () => {
@@ -1958,6 +2114,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             await API.updateAdminUserRole(id, newRole);
                             showToast(`Rol del usuario actualizado a ${newRole}.`);
                             loadAdminUsers();
+                            loadAdminStats();
                         } catch (err) {
                             showToast(err.message || 'Error actualizando rol', 'error');
                         }
@@ -1965,8 +2122,46 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
 
+            tbody.querySelectorAll('.btn-toggle-ban').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const id = btn.dataset.id;
+                    const currentStatus = btn.dataset.status;
+                    const username = btn.dataset.username;
+                    const newStatus = currentStatus === 'banned' ? 'active' : 'banned';
+                    const actionLabel = newStatus === 'banned' ? 'BANEAR' : 'DESBANEAR';
+
+                    if (confirm(`¿Confirma que desea ${actionLabel} la cuenta de "${username}"? ${newStatus === 'banned' ? 'El usuario no podrá realizar ninguna acción en la plataforma.' : 'Se le devolverá el acceso normal.'}`)) {
+                        try {
+                            await API.updateAdminUserStatus(id, newStatus);
+                            showToast(`Usuario "${username}" ${newStatus === 'banned' ? 'baneado' : 'desbaneado'} exitosamente.`);
+                            loadAdminUsers();
+                        } catch (err) {
+                            showToast(err.message || 'Error al modificar estado', 'error');
+                        }
+                    }
+                });
+            });
+
+            tbody.querySelectorAll('.btn-del-user').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const id = btn.dataset.id;
+                    const username = btn.dataset.username;
+
+                    if (confirm(`¿ATENCIÓN: Desea ELIMINAR permanentemente la cuenta de "${username}"? Se borrarán todos sus datos y juegos.`)) {
+                        try {
+                            await API.deleteAdminUser(id);
+                            showToast(`Cuenta de "${username}" eliminada correctamente.`);
+                            loadAdminUsers();
+                            loadAdminStats();
+                        } catch (err) {
+                            showToast(err.message || 'Error eliminando usuario', 'error');
+                        }
+                    }
+                });
+            });
+
         } catch (err) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #ef4444;">Error cargando usuarios: ${err.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem; color: #ef4444;">Error cargando usuarios: ${err.message}</td></tr>`;
         }
     }
 

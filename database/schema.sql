@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
     bio VARCHAR(255) DEFAULT 'Gamer en busca de completar su backlog.',
     platform VARCHAR(50) DEFAULT 'PC',
     role VARCHAR(20) DEFAULT 'user',
+    status VARCHAR(20) DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

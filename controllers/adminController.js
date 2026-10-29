@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const path = require('path');
 const UserModel = require('../models/userModel');
@@ -43,6 +44,194 @@ const AdminController = {
             res.status(200).json({
                 success: true,
                 message: `Rol del usuario #${id} actualizado a "${role}" con éxito.`,
+                data: updated
+            });
+        } catch (err) {
+            next(err);
+        }
+    },
+
+    // 2.1 Crear nuevo usuario desde el panel admin (CRUD)
+    async createUser(req, res, next) {
+        try {
+            const { username, email, password, role = 'user', status = 'active', platform = 'PC' } = req.body;
+
+            if (!username || !email || !password) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Los campos username, email y password son obligatorios.'
+                });
+            }
+
+            if (password.length < 6) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'La contraseña debe contener al menos 6 caracteres.'
+                });
+            }
+
+            const existingEmail = await UserModel.findByEmail(email);
+            if (existingEmail) {
+                return res.status(409).json({
+                    success: false,
+                    message: 'El correo electrónico ya se encuentra registrado.'
+                });
+            }
+
+            const existingUsername = await UserModel.findByUsername(username);
+            if (existingUsername) {
+                return res.status(409).json({
+                    success: false,
+                    message: 'El nombre de usuario ya está en uso.'
+                });
+            }
+
+            const passwordHash = await bcrypt.hash(password, 10);
+            const newUser = await UserModel.createAdminUser({
+                username,
+                email,
+                passwordHash,
+                role: ['admin', 'user'].includes(role) ? role : 'user',
+                status: ['active', 'banned'].includes(status) ? status : 'active',
+                platform
+            });
+
+            res.status(201).json({
+                success: true,
+                message: `Usuario "${username}" creado exitosamente en el sistema.`,
+                data: newUser
+            });
+        } catch (err) {
+            next(err);
+        }
+    },
+
+    // 2.2 Modificar datos completos de un usuario (CRUD)
+    async updateUser(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { username, email, role, status, platform, password } = req.body;
+
+            const existing = await UserModel.findById(id);
+            if (!existing) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Usuario no encontrado.'
+                });
+            }
+
+            // Check email uniqueness if changing
+            if (email && email.toLowerCase().trim() !== existing.email.toLowerCase().trim()) {
+                const dupEmail = await UserModel.findByEmail(email);
+                if (dupEmail && dupEmail.id !== Number(id)) {
+                    return res.status(409).json({
+                        success: false,
+                        message: 'El correo electrónico ya pertenece a otro usuario.'
+                    });
+                }
+            }
+
+            // Check username uniqueness if changing
+            if (username && username.trim() !== existing.username.trim()) {
+                const dupUser = await UserModel.findByUsername(username);
+                if (dupUser && dupUser.id !== Number(id)) {
+                    return res.status(409).json({
+                        success: false,
+                        message: 'El nombre de usuario ya pertenece a otro usuario.'
+                    });
+                }
+            }
+
+            let passwordHash = null;
+            if (password && password.trim().length >= 6) {
+                passwordHash = await bcrypt.hash(password.trim(), 10);
+            }
+
+            const updated = await UserModel.updateAdminUser(id, {
+                username: username ? username.trim() : null,
+                email: email ? email.toLowerCase().trim() : null,
+                role: role && ['user', 'admin'].includes(role) ? role : null,
+                status: status && ['active', 'banned'].includes(status) ? status : null,
+                platform: platform || null,
+                passwordHash
+            });
+
+            res.status(200).json({
+                success: true,
+                message: `Usuario #${id} actualizado correctamente.`,
+                data: updated
+            });
+        } catch (err) {
+            next(err);
+        }
+    },
+
+    // 2.3 Eliminar usuario del sistema (CRUD)
+    async deleteUser(req, res, next) {
+        try {
+            const { id } = req.params;
+
+            if (Number(id) === Number(req.user.id)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'No puedes eliminar tu propia cuenta de administrador activa.'
+                });
+            }
+
+            const existing = await UserModel.findById(id);
+            if (!existing) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Usuario no encontrado.'
+                });
+            }
+
+            await UserModel.deleteUser(id);
+
+            res.status(200).json({
+                success: true,
+                message: `El usuario "${existing.username}" y todos sus datos han sido eliminados del sistema.`
+            });
+        } catch (err) {
+            next(err);
+        }
+    },
+
+    // 2.4 Banear o desbanear usuario (Status)
+    async updateUserStatus(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { status } = req.body;
+
+            if (!status || !['active', 'banned'].includes(status)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Estado inválido. Se espera: "active" o "banned".'
+                });
+            }
+
+            if (Number(id) === Number(req.user.id) && status === 'banned') {
+                return res.status(400).json({
+                    success: false,
+                    message: 'No puedes banear tu propia cuenta de administrador.'
+                });
+            }
+
+            const existing = await UserModel.findById(id);
+            if (!existing) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Usuario no encontrado.'
+                });
+            }
+
+            const updated = await UserModel.updateStatus(id, status);
+
+            res.status(200).json({
+                success: true,
+                message: status === 'banned'
+                    ? `Usuario "${existing.username}" ha sido BANEADO del sistema.`
+                    : `Usuario "${existing.username}" ha sido RESTABLECIDO a estado activo.`,
                 data: updated
             });
         } catch (err) {

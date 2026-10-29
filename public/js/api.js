@@ -238,6 +238,33 @@ const API = {
         });
     },
 
+    async createAdminUser(userData) {
+        return await this.request('/admin/users', {
+            method: 'POST',
+            body: JSON.stringify(userData)
+        });
+    },
+
+    async updateAdminUser(userId, userData) {
+        return await this.request(`/admin/users/${userId}`, {
+            method: 'PUT',
+            body: JSON.stringify(userData)
+        });
+    },
+
+    async deleteAdminUser(userId) {
+        return await this.request(`/admin/users/${userId}`, {
+            method: 'DELETE'
+        });
+    },
+
+    async updateAdminUserStatus(userId, status) {
+        return await this.request(`/admin/users/${userId}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({ status })
+        });
+    },
+
     async createAdminGame(gameData) {
         return await this.request('/admin/games', {
             method: 'POST',

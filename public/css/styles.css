@@ -1186,3 +1186,23 @@ footer {
         gap: 1rem;
     }
 }
+
+/* Banner de Usuario Baneado */
+.banner-banned {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 99999;
+    background: linear-gradient(90deg, #dc2626, #b91c1c);
+    color: #ffffff;
+    padding: 0.8rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+    text-align: center;
+}

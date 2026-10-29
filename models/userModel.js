@@ -19,7 +19,7 @@ const UserModel = {
 
     async findById(id) {
         const [rows] = await db.query(
-            'SELECT id, username, email, avatar, bio, platform, role, created_at FROM users WHERE id = ?',
+            'SELECT id, username, email, avatar, bio, platform, role, status, created_at FROM users WHERE id = ?',
             [id]
         );
         return rows[0] || null;
@@ -100,7 +100,8 @@ const UserModel = {
 
     async getAllUsers() {
         const [rows] = await db.query(
-            `SELECT u.id, u.username, u.email, u.avatar, u.bio, u.platform, u.role, u.created_at,
+            `SELECT u.id, u.username, u.email, u.avatar, u.bio, u.platform, u.role, 
+                    COALESCE(u.status, 'active') AS status, u.created_at,
                     COUNT(ul.id) AS total_games
              FROM users u
              LEFT JOIN user_library ul ON u.id = ul.user_id
@@ -108,6 +109,47 @@ const UserModel = {
              ORDER BY u.id ASC`
         );
         return rows;
+    },
+
+    async createAdminUser({ username, email, passwordHash, role = 'user', status = 'active', platform = 'PC' }) {
+        const [result] = await db.query(
+            `INSERT INTO users (username, email, password_hash, role, status, platform)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [username.trim(), email.toLowerCase().trim(), passwordHash, role, status, platform]
+        );
+        return this.findById(result.insertId);
+    },
+
+    async updateAdminUser(id, { username, email, role, status, platform, passwordHash }) {
+        let sql = `UPDATE users SET 
+            username = COALESCE(?, username),
+            email = COALESCE(?, email),
+            role = COALESCE(?, role),
+            status = COALESCE(?, status),
+            platform = COALESCE(?, platform)`;
+        const params = [username, email, role, status, platform];
+        if (passwordHash) {
+            sql += `, password_hash = ?`;
+            params.push(passwordHash);
+        }
+        sql += ` WHERE id = ?`;
+        params.push(id);
+        await db.query(sql, params);
+        return this.findById(id);
+    },
+
+    async deleteUser(id) {
+        await db.query('DELETE FROM users WHERE id = ?', [id]);
+        return true;
+    },
+
+    async updateStatus(id, status) {
+        const validStatuses = ['active', 'banned'];
+        if (!validStatuses.includes(status)) {
+            throw new Error('Estado inválido. Se espera: active o banned.');
+        }
+        await db.query('UPDATE users SET status = ? WHERE id = ?', [status, id]);
+        return this.findById(id);
     },
 
     async updateRole(id, role) {
