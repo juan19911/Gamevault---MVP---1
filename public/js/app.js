@@ -103,21 +103,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const formLogin = document.getElementById('form-login');
     const formRegister = document.getElementById('form-register');
 
-    tabLogin.addEventListener('click', () => {
-        formLogin.style.display = 'block';
-        formRegister.style.display = 'none';
-        tabLogin.style.fontWeight = '700';
-        tabRegister.style.fontWeight = 'normal';
-    });
+    function setAuthTab(tab) {
+        if (tab === 'login') {
+            formLogin.style.display = 'block';
+            formRegister.style.display = 'none';
+            tabLogin.classList.add('active');
+            tabRegister.classList.remove('active');
+        } else {
+            formLogin.style.display = 'none';
+            formRegister.style.display = 'block';
+            tabRegister.classList.add('active');
+            tabLogin.classList.remove('active');
+        }
+    }
 
-    tabRegister.addEventListener('click', () => {
-        formLogin.style.display = 'none';
-        formRegister.style.display = 'block';
-        tabRegister.style.fontWeight = '700';
-        tabLogin.style.fontWeight = 'normal';
-    });
+    tabLogin.addEventListener('click', () => setAuthTab('login'));
+    tabRegister.addEventListener('click', () => setAuthTab('register'));
 
-    btnOpenAuth.addEventListener('click', () => openModal('modal-auth'));
+    btnOpenAuth.addEventListener('click', () => {
+        setAuthTab('login');
+        openModal('modal-auth');
+    });
 
     formLogin.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -1413,16 +1419,22 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById(modalId)?.classList.remove('open');
     }
 
-    document.querySelectorAll('.modal-close').forEach(btn => {
-        btn.addEventListener('click', () => {
+    document.querySelectorAll('.modal-close, [data-close]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
             const modalId = btn.dataset.close;
-            closeModal(modalId);
+            if (modalId) {
+                closeModal(modalId);
+            }
         });
     });
 
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) {
+                // El modal de autenticación (login/registro) no debe cerrarse al hacer clic afuera, sólo con el botón X
+                if (overlay.id === 'modal-auth') {
+                    return;
+                }
                 overlay.classList.remove('open');
             }
         });
@@ -1700,6 +1712,15 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             coverPreview.addEventListener('error', () => {
                 coverPreview.src = 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600';
+            });
+        }
+
+        // Cancel / Close modal button in admin modal
+        const btnCancelAdminGame = document.getElementById('btn-cancel-admin-game');
+        if (btnCancelAdminGame) {
+            btnCancelAdminGame.addEventListener('click', (e) => {
+                e.preventDefault();
+                closeModal('modal-admin-game');
             });
         }
 
