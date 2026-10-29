@@ -17,5 +17,7 @@ router.put('/users/:id/role', AdminController.updateUserRole);
 router.post('/games', AdminController.createGame);
 router.put('/games/:id', AdminController.updateGame);
 router.delete('/games/:id', AdminController.deleteGame);
+router.post('/upload-cover', AdminController.uploadCover);
 
 module.exports = router;
+

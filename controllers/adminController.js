@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const UserModel = require('../models/userModel');
 const GameModel = require('../models/gameModel');
 const { db } = require('../config/database');
@@ -161,7 +163,69 @@ const AdminController = {
         } catch (err) {
             next(err);
         }
+    },
+
+    // 7. Cargar portada desde dispositivo local / PC
+    async uploadCover(req, res, next) {
+        try {
+            const { image, filename } = req.body;
+            if (!image) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'No se recibió ninguna imagen para subir.'
+                });
+            }
+
+            const matches = image.match(/^data:image\/([a-zA-Z0-9+.-]+);base64,(.+)$/);
+            let ext = 'jpg';
+            let base64Data = image;
+
+            if (matches) {
+                let mimeExt = matches[1].toLowerCase();
+                if (mimeExt === 'jpeg') mimeExt = 'jpg';
+                if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg+xml'].includes(mimeExt)) {
+                    ext = mimeExt === 'svg+xml' ? 'svg' : mimeExt;
+                }
+                base64Data = matches[2];
+            } else if (filename && filename.includes('.')) {
+                const rawExt = filename.split('.').pop().toLowerCase();
+                if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(rawExt)) {
+                    ext = rawExt;
+                }
+            }
+
+            const buffer = Buffer.from(base64Data, 'base64');
+            if (buffer.length > 10 * 1024 * 1024) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'La imagen excede el límite permitido de 10 MB.'
+                });
+            }
+
+            const uploadDir = path.join(__dirname, '..', 'public', 'uploads', 'covers');
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+
+            const cleanSafeName = filename
+                ? filename.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 30)
+                : 'cover';
+            const uniqueFileName = `cover_${Date.now()}_${cleanSafeName}.${ext}`;
+            const filePath = path.join(uploadDir, uniqueFileName);
+
+            fs.writeFileSync(filePath, buffer);
+
+            const relativeUrl = `/uploads/covers/${uniqueFileName}`;
+            return res.status(200).json({
+                success: true,
+                message: 'Portada cargada exitosamente.',
+                url: relativeUrl
+            });
+        } catch (err) {
+            next(err);
+        }
     }
 };
 
 module.exports = AdminController;
+

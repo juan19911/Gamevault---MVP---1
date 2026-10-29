@@ -149,4 +149,23 @@ describe('Panel de Administración y Control de Acceso por Roles (RBAC)', () => 
         const checkRes = await fetch(`${baseUrl}/api/games/${createdGameId}`);
         assert.strictEqual(checkRes.status, 404);
     });
+
+    test('POST /api/admin/upload-cover debe recibir imagen base64 y guardarla en el servidor', async () => {
+        // Pixel transparente 1x1 PNG en base64
+        const sampleImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+        const res = await fetch(`${baseUrl}/api/admin/upload-cover`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${adminToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ image: sampleImage, filename: 'test_portada.png' })
+        });
+
+        assert.strictEqual(res.status, 200);
+        const data = await res.json();
+        assert.strictEqual(data.success, true);
+        assert.ok(data.url.startsWith('/uploads/covers/cover_'));
+    });
 });
+

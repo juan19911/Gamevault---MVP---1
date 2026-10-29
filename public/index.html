@@ -911,9 +911,29 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">URL de Portada (Carátula) *</label>
+                    <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>Carátula / Portada del Videojuego *</span>
+                        <span id="admin-upload-badge" style="font-size: 0.72rem; color: #00dfa2; font-weight: 600; display: none;">✓ Imagen local lista</span>
+                    </label>
+
+                    <!-- Botón para subir archivo desde la PC o dispositivo -->
+                    <div style="margin-bottom: 0.65rem; background: rgba(0, 223, 162, 0.05); border: 1px dashed rgba(0, 223, 162, 0.4); border-radius: 8px; padding: 0.75rem; text-align: center;">
+                        <input type="file" id="admin-game-file" accept="image/png, image/jpeg, image/jpg, image/webp, image/gif" style="display: none;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="btn-trigger-upload-cover" style="gap: 0.5rem; font-weight: 600; margin: 0 auto; color: #00dfa2; border-color: rgba(0, 223, 162, 0.3);">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            <span>Elegir imagen desde tu PC o dispositivo</span>
+                        </button>
+                        <div id="admin-file-name" style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.35rem;">
+                            Formatos soportados: JPG, PNG, WEBP, GIF (Máx. 10MB)
+                        </div>
+                    </div>
+
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.35rem;">
+                        O bien ingresa una URL web directa o selecciona una portada predefinida:
+                    </div>
+
                     <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
-                        <input type="text" id="admin-game-cover" class="form-input" placeholder="/assets/covers/cs2.webp o https://..." style="flex: 1;" required>
+                        <input type="text" id="admin-game-cover" class="form-input" placeholder="/assets/covers/cs2.webp, /uploads/covers/... o https://..." style="flex: 1;" required>
                         <select id="admin-game-preset-cover" class="form-select" style="width: 140px;">
                             <option value="">Predefinidas...</option>
                             <option value="/assets/covers/cs2.webp">CS2</option>
@@ -930,9 +950,13 @@
                             <option value="/assets/covers/vice city.jpg">GTA Vice City</option>
                         </select>
                     </div>
+
                     <div style="display: flex; align-items: center; gap: 0.85rem; background: rgba(0,0,0,0.25); padding: 0.65rem; border-radius: 8px; border: 1px solid var(--border-color);">
                         <img id="admin-cover-preview" src="/assets/covers/cs2.webp" alt="Vista previa" style="width: 48px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color);">
-                        <span style="font-size: 0.8rem; color: var(--text-muted);">Vista previa de la carátula oficial en catálogo</span>
+                        <div>
+                            <span style="font-size: 0.82rem; color: #fff; font-weight: 600; display: block;">Vista previa en catálogo</span>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">Se ajustará proporcionalmente a las tarjetas oficiales</span>
+                        </div>
                     </div>
                 </div>
 

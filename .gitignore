@@ -140,3 +140,7 @@ dist
 *.db-wal
 *.db-shm
 database/*.db*
+
+# User uploaded content
+public/uploads/covers/*
+!public/uploads/covers/.gitkeep

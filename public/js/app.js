@@ -1606,20 +1606,92 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 document.getElementById('admin-game-cover').value = '/assets/covers/cs2.webp';
                 document.getElementById('admin-cover-preview').src = '/assets/covers/cs2.webp';
+                const uploadBadge = document.getElementById('admin-upload-badge');
+                if (uploadBadge) uploadBadge.style.display = 'none';
+                const fileInput = document.getElementById('admin-game-file');
+                if (fileInput) fileInput.value = '';
+                const fileNameLabel = document.getElementById('admin-file-name');
+                if (fileNameLabel) {
+                    fileNameLabel.textContent = 'Formatos soportados: JPG, PNG, WEBP, GIF (Máx. 10MB)';
+                    fileNameLabel.style.color = 'var(--text-muted)';
+                }
                 openModal('modal-admin-game');
             });
         }
 
-        // Cover preset and live preview
+        // Cover preset, file upload and live preview
         const coverInput = document.getElementById('admin-game-cover');
         const coverPreset = document.getElementById('admin-game-preset-cover');
         const coverPreview = document.getElementById('admin-cover-preview');
+        const btnTriggerUpload = document.getElementById('btn-trigger-upload-cover');
+        const fileInput = document.getElementById('admin-game-file');
+        const uploadBadge = document.getElementById('admin-upload-badge');
+        const fileNameLabel = document.getElementById('admin-file-name');
+
+        if (btnTriggerUpload && fileInput) {
+            btnTriggerUpload.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', () => {
+                if (!fileInput.files || !fileInput.files[0]) return;
+                const file = fileInput.files[0];
+
+                if (!file.type.startsWith('image/')) {
+                    showToast('Por favor selecciona un archivo de imagen válido (JPG, PNG, WEBP, GIF).', 'error');
+                    fileInput.value = '';
+                    return;
+                }
+
+                if (file.size > 10 * 1024 * 1024) {
+                    showToast('La imagen es demasiado grande. El límite máximo es de 10 MB.', 'error');
+                    fileInput.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                if (fileNameLabel) {
+                    fileNameLabel.textContent = `Subiendo: ${file.name} (${(file.size / 1024).toFixed(1)} KB)...`;
+                    fileNameLabel.style.color = '#fbbf24';
+                }
+
+                reader.onload = async (e) => {
+                    const base64Data = e.target.result;
+                    if (coverPreview) coverPreview.src = base64Data;
+
+                    try {
+                        const uploadRes = await API.uploadAdminCover(base64Data, file.name);
+                        if (uploadRes && uploadRes.url) {
+                            if (coverInput) coverInput.value = uploadRes.url;
+                            if (fileNameLabel) {
+                                fileNameLabel.textContent = `✓ Archivo cargado: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+                                fileNameLabel.style.color = '#00dfa2';
+                            }
+                            if (uploadBadge) uploadBadge.style.display = 'inline';
+                            showToast('¡Imagen de carátula cargada exitosamente!');
+                        }
+                    } catch (err) {
+                        if (fileNameLabel) {
+                            fileNameLabel.textContent = `Error al subir: ${err.message}`;
+                            fileNameLabel.style.color = '#ef4444';
+                        }
+                        showToast(err.message || 'Error al subir la imagen', 'error');
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
 
         if (coverPreset && coverInput && coverPreview) {
             coverPreset.addEventListener('change', () => {
                 if (coverPreset.value) {
                     coverInput.value = coverPreset.value;
                     coverPreview.src = coverPreset.value;
+                    if (uploadBadge) uploadBadge.style.display = 'none';
+                    if (fileNameLabel) {
+                        fileNameLabel.textContent = 'Formatos soportados: JPG, PNG, WEBP, GIF (Máx. 10MB)';
+                        fileNameLabel.style.color = 'var(--text-muted)';
+                    }
                 }
             });
 
@@ -1771,6 +1843,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.getElementById('admin-game-synopsis').value = game.synopsis || '';
                         document.getElementById('admin-game-cover').value = game.cover_url || '';
                         document.getElementById('admin-cover-preview').src = game.cover_url || '/assets/covers/cs2.webp';
+                        const editUploadBadge = document.getElementById('admin-upload-badge');
+                        if (editUploadBadge) editUploadBadge.style.display = 'none';
+                        const editFileInput = document.getElementById('admin-game-file');
+                        if (editFileInput) editFileInput.value = '';
+                        const editFileNameLabel = document.getElementById('admin-file-name');
+                        if (editFileNameLabel) {
+                            editFileNameLabel.textContent = 'Formatos soportados: JPG, PNG, WEBP, GIF (Máx. 10MB)';
+                            editFileNameLabel.style.color = 'var(--text-muted)';
+                        }
                         document.getElementById('modal-admin-game-title').innerHTML = `
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                             <span>Editar Videojuego #${game.id}</span>

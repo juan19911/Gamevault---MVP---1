@@ -256,5 +256,12 @@ const API = {
         return await this.request(`/admin/games/${gameId}`, {
             method: 'DELETE'
         });
+    },
+
+    async uploadAdminCover(base64Image, filename) {
+        return await this.request('/admin/upload-cover', {
+            method: 'POST',
+            body: JSON.stringify({ image: base64Image, filename })
+        });
     }
 };
