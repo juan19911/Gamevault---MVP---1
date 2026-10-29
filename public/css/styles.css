@@ -863,3 +863,257 @@ footer {
     animation: spinCycle 0.9s linear infinite;
     display: inline-block;
 }
+
+/* ===================================================
+   MOBILE & RESPONSIVE ADAPTATIONS (< 992px & < 768px)
+   =================================================== */
+
+@media (max-width: 992px) {
+    .container {
+        padding: 1.5rem 1rem;
+    }
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    /* 1. Viewport & Body Protection */
+    html, body {
+        overflow-x: hidden;
+        width: 100%;
+    }
+
+    /* 2. Top Navbar Optimization */
+    .navbar {
+        padding: 0.65rem 0.85rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .brand {
+        font-size: 1.15rem;
+    }
+
+    .brand-crest {
+        width: 30px;
+        height: 30px;
+    }
+
+    .user-nav-area {
+        margin-left: auto;
+        gap: 0.5rem;
+    }
+
+    .user-badge {
+        padding: 0.25rem 0.6rem 0.25rem 0.35rem;
+    }
+
+    .user-badge span {
+        max-width: 85px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Horizontally scrollable touch navigation pills */
+    .nav-links {
+        order: 3;
+        width: 100%;
+        display: flex;
+        gap: 0.4rem;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 0.4rem 0 0.2rem 0;
+        scrollbar-width: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-links::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nav-btn {
+        padding: 0.45rem 0.75rem;
+        font-size: 0.82rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    /* 3. Header & Search / Filters */
+    .view-header {
+        margin-bottom: 1.25rem;
+        gap: 1rem;
+    }
+
+    .view-title h1 {
+        font-size: 1.45rem;
+    }
+
+    .view-title p {
+        font-size: 0.85rem;
+    }
+
+    .filters-bar {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    .search-input-wrap {
+        width: 100% !important;
+    }
+
+    .search-input,
+    .filter-select,
+    .form-input,
+    .form-textarea,
+    .form-select {
+        font-size: 16px !important; /* Prevents auto-zoom in iOS Safari */
+        width: 100%;
+    }
+
+    /* 4. Library Tabs */
+    .library-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        gap: 0.35rem;
+        padding-bottom: 0.4rem;
+    }
+
+    .library-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .tab-btn {
+        padding: 0.45rem 0.75rem;
+        font-size: 0.82rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    /* 5. Games Grid */
+    .games-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+
+    /* Ensure card zoom button is visible on mobile touch (no hover) */
+    .card-zoom-btn {
+        opacity: 0.95 !important;
+        transform: scale(1) !important;
+    }
+
+    .card-img-wrap {
+        height: 180px;
+    }
+
+    /* 6. KPI Cards */
+    .kpi-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .kpi-card {
+        padding: 1rem 0.85rem;
+        gap: 0.75rem;
+    }
+
+    .kpi-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.3rem;
+    }
+
+    .kpi-value {
+        font-size: 1.35rem;
+    }
+
+    .kpi-label {
+        font-size: 0.75rem;
+    }
+
+    /* 7. Charts */
+    .charts-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.25rem;
+    }
+
+    .chart-card {
+        padding: 1rem;
+    }
+
+    /* 8. Modals (Responsive Sheet) */
+    .modal-content {
+        width: 95% !important;
+        max-width: 95vw !important;
+        padding: 1.25rem !important;
+        border-radius: 14px;
+        max-height: 90vh;
+    }
+
+    .lightbox-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .lightbox-img-wrap {
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1rem;
+    }
+
+    .lightbox-img {
+        max-height: 220px;
+    }
+
+    .lightbox-info {
+        padding: 1.25rem 0.5rem;
+    }
+
+    /* Profile modal favorites grid */
+    #profile-favorites-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.5rem !important;
+    }
+
+    /* 9. Discovery / Roulette */
+    .ruleta-box {
+        padding: 1.75rem 1rem;
+    }
+
+    /* 10. FAQ Bot Widget */
+    .faq-bot-widget {
+        bottom: 16px;
+        right: 16px;
+    }
+
+    .faq-bot-panel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        max-width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        z-index: 10000;
+    }
+
+    .faq-bot-toggle {
+        padding: 0.65rem 0.95rem;
+        font-size: 0.8rem;
+    }
+}
+
+@media (min-width: 540px) and (max-width: 768px) {
+    .games-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+}
