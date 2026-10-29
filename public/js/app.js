@@ -58,8 +58,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const navUserName = document.getElementById('nav-user-name');
     const navUserAvatar = document.getElementById('nav-user-avatar');
 
+    async function syncUserProfile() {
+        if (!API.getToken()) return;
+        try {
+            const res = await API.getProfile();
+            if (res && res.user) {
+                const currentUser = API.getUser() || {};
+                currentUser.status = res.user.status || 'active';
+                currentUser.role = res.user.role || currentUser.role;
+                currentUser.username = res.user.username || currentUser.username;
+                currentUser.avatar = res.user.avatar || currentUser.avatar;
+                API.setUser(currentUser);
+                initAuthUI();
+            }
+        } catch (err) {
+            // Silencioso
+        }
+    }
+
     // Init App
     initAuthUI();
+    syncUserProfile();
     initNavigation();
     initFilters();
     initListsUI();
@@ -383,6 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function switchView(viewName) {
+        syncUserProfile();
         currentView = viewName;
 
         navBtns.forEach(b => {
@@ -1661,6 +1681,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (userId) {
                         await API.updateAdminUser(userId, payload);
                         showToast(`Usuario "${username}" actualizado exitosamente.`);
+                        
+                        const currentUser = API.getUser();
+                        if (currentUser && Number(currentUser.id) === Number(userId)) {
+                            currentUser.status = status;
+                            currentUser.role = role;
+                            currentUser.username = username;
+                            API.setUser(currentUser);
+                            initAuthUI();
+                        }
                     } else {
                         await API.createAdminUser(payload);
                         showToast(`¡Usuario "${username}" creado exitosamente!`);
@@ -2134,6 +2163,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         try {
                             await API.updateAdminUserStatus(id, newStatus);
                             showToast(`Usuario "${username}" ${newStatus === 'banned' ? 'baneado' : 'desbaneado'} exitosamente.`);
+                            
+                            // Si el usuario modificado es el que está en la sesión actual, actualizar en tiempo real
+                            const currentUser = API.getUser();
+                            if (currentUser && Number(currentUser.id) === Number(id)) {
+                                currentUser.status = newStatus;
+                                API.setUser(currentUser);
+                                initAuthUI();
+                            }
+                            
                             loadAdminUsers();
                         } catch (err) {
                             showToast(err.message || 'Error al modificar estado', 'error');
@@ -2184,3 +2222,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 });
+    window.addEventListener('focus', () => {
+        syncUserProfile();
+    });

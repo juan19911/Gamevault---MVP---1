@@ -58,11 +58,34 @@ const API = {
             }
 
             if (!res.ok) {
+                if (data && data.banned) {
+                    const user = this.getUser();
+                    if (user) {
+                        user.status = 'banned';
+                        this.setUser(user);
+                        const bannerBanned = document.getElementById('banner-banned');
+                        if (bannerBanned) bannerBanned.style.display = 'flex';
+                    }
+                }
                 if (res.status === 401 && endpoint !== '/auth/login' && endpoint !== '/auth/register') {
                     // Session expired
                     this.logout();
                 }
                 throw new Error(data.message || `Error en la petición (${res.status})`);
+            }
+
+            // Si la consulta a /auth/profile fue exitosa, sincronizar inmediatamente el estado del usuario
+            if (endpoint === '/auth/profile' && data.user) {
+                const user = this.getUser() || {};
+                user.status = data.user.status || 'active';
+                user.role = data.user.role || user.role;
+                this.setUser(user);
+                const bannerBanned = document.getElementById('banner-banned');
+                if (user.status === 'banned') {
+                    if (bannerBanned) bannerBanned.style.display = 'flex';
+                } else {
+                    if (bannerBanned) bannerBanned.style.display = 'none';
+                }
             }
 
             return data;
