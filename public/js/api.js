@@ -218,5 +218,43 @@ const API = {
     // Game Reviews (HU-05)
     async getGameReviews(gameId) {
         return await this.request(`/games/${gameId}/reviews`);
+    },
+
+    // ==========================================
+    // ADMIN MANAGEMENT (RBAC)
+    // ==========================================
+    async getAdminStats() {
+        return await this.request('/admin/stats');
+    },
+
+    async getAdminUsers() {
+        return await this.request('/admin/users');
+    },
+
+    async updateAdminUserRole(userId, role) {
+        return await this.request(`/admin/users/${userId}/role`, {
+            method: 'PUT',
+            body: JSON.stringify({ role })
+        });
+    },
+
+    async createAdminGame(gameData) {
+        return await this.request('/admin/games', {
+            method: 'POST',
+            body: JSON.stringify(gameData)
+        });
+    },
+
+    async updateAdminGame(gameId, gameData) {
+        return await this.request(`/admin/games/${gameId}`, {
+            method: 'PUT',
+            body: JSON.stringify(gameData)
+        });
+    },
+
+    async deleteAdminGame(gameId) {
+        return await this.request(`/admin/games/${gameId}`, {
+            method: 'DELETE'
+        });
     }
 };

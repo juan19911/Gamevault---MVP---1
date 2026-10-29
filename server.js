@@ -14,6 +14,7 @@ const libraryRoutes = require('./routes/libraryRoutes');
 const sessionRoutes = require('./routes/sessionRoutes');
 const statsRoutes = require('./routes/statsRoutes');
 const listRoutes = require('./routes/listRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -34,6 +35,7 @@ const registerRoutes = (prefix) => {
     app.use(`${prefix}/sessions`, sessionRoutes);
     app.use(`${prefix}/stats`, statsRoutes);
     app.use(`${prefix}/lists`, listRoutes);
+    app.use(`${prefix}/admin`, adminRoutes);
 };
 
 registerRoutes('/api');

@@ -96,6 +96,27 @@ const UserModel = {
             [id]
         );
         return rows[0]?.password_hash || null;
+    },
+
+    async getAllUsers() {
+        const [rows] = await db.query(
+            `SELECT u.id, u.username, u.email, u.avatar, u.bio, u.platform, u.role, u.created_at,
+                    COUNT(ul.id) AS total_games
+             FROM users u
+             LEFT JOIN user_library ul ON u.id = ul.user_id
+             GROUP BY u.id
+             ORDER BY u.id ASC`
+        );
+        return rows;
+    },
+
+    async updateRole(id, role) {
+        const validRoles = ['user', 'admin'];
+        if (!validRoles.includes(role)) {
+            throw new Error('Rol inválido. Se espera: user o admin.');
+        }
+        await db.query('UPDATE users SET role = ? WHERE id = ?', [role, id]);
+        return this.findById(id);
     }
 };
 

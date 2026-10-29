@@ -48,6 +48,10 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
                 <span>Estadísticas</span>
             </button>
+            <button class="nav-btn nav-btn-admin" id="nav-admin" data-view="admin" style="display: none; color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.35); background: rgba(251, 191, 36, 0.08);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                <span>Administración</span>
+            </button>
         </nav>
 
         <div class="user-nav-area">
@@ -279,6 +283,129 @@
             </div>
         </section>
 
+
+        <!-- ================= VIEW 6: PANEL DE ADMINISTRACIÓN ================= -->
+        <section id="view-admin" class="view-section" style="display: none;">
+            <div class="view-header">
+                <div class="view-title">
+                    <h1 style="color: #fbbf24; display: flex; align-items: center; gap: 0.6rem;">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                        Panel de Administración
+                    </h1>
+                    <p>Módulo de gestión integral del catálogo de videojuegos, roles de usuarios y supervisión del sistema.</p>
+                </div>
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <button class="btn btn-primary" id="btn-admin-add-game" style="gap: 0.5rem; background: #fbbf24; color: #090d16; font-weight: 700;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <span>Añadir Videojuego</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SUBPESTAÑAS DE ADMINISTRACIÓN -->
+            <div class="library-tabs" id="admin-tabs" style="margin-bottom: 1.5rem;">
+                <button class="tab-btn active" data-admin-tab="catalog">Catálogo de Juegos</button>
+                <button class="tab-btn" data-admin-tab="users">Usuarios y Roles</button>
+                <button class="tab-btn" data-admin-tab="stats">Métricas del Sistema</button>
+            </div>
+
+            <!-- TAB 1: CATÁLOGO -->
+            <div id="admin-tab-content-catalog">
+                <div class="filters-bar" style="margin-bottom: 1.5rem;">
+                    <div class="search-input-wrap">
+                        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" id="admin-search-catalog" class="search-input" placeholder="Buscar juego en catálogo...">
+                    </div>
+                    <select id="admin-filter-genre" class="filter-select">
+                        <option value="">Todos los Géneros</option>
+                    </select>
+                </div>
+
+                <div class="admin-table-container" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow-x: auto;">
+                    <table class="admin-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                        <thead>
+                            <tr style="background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase;">
+                                <th style="padding: 0.85rem 1rem;">Portada</th>
+                                <th style="padding: 0.85rem 1rem;">Título / Desarrollador</th>
+                                <th style="padding: 0.85rem 1rem;">Género</th>
+                                <th style="padding: 0.85rem 1rem;">Plataforma</th>
+                                <th style="padding: 0.85rem 1rem;">Año</th>
+                                <th style="padding: 0.85rem 1rem; text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-catalog-tbody">
+                            <!-- Filas generadas dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 2: USUARIOS -->
+            <div id="admin-tab-content-users" style="display: none;">
+                <div class="admin-table-container" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow-x: auto;">
+                    <table class="admin-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                        <thead>
+                            <tr style="background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase;">
+                                <th style="padding: 0.85rem 1rem;">ID</th>
+                                <th style="padding: 0.85rem 1rem;">Usuario</th>
+                                <th style="padding: 0.85rem 1rem;">Correo Electrónico</th>
+                                <th style="padding: 0.85rem 1rem;">Plataforma</th>
+                                <th style="padding: 0.85rem 1rem;">Rol</th>
+                                <th style="padding: 0.85rem 1rem;">Juegos</th>
+                                <th style="padding: 0.85rem 1rem; text-align: right;">Gestión</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-users-tbody">
+                            <!-- Filas generadas dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 3: MÉTRICAS DEL SISTEMA -->
+            <div id="admin-tab-content-stats" style="display: none;">
+                <div class="kpi-row" id="admin-kpi-row">
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="color: #38bdf8; background: rgba(56, 189, 248, 0.15);">👥</div>
+                        <div>
+                            <div class="kpi-value" id="admin-stat-users">-</div>
+                            <div class="kpi-label">Usuarios Registrados</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="color: #00dfa2; background: rgba(0, 223, 162, 0.15);">🎮</div>
+                        <div>
+                            <div class="kpi-value" id="admin-stat-games">-</div>
+                            <div class="kpi-label">Juegos en Catálogo</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="color: #fbbf24; background: rgba(251, 191, 36, 0.15);">📚</div>
+                        <div>
+                            <div class="kpi-value" id="admin-stat-library">-</div>
+                            <div class="kpi-label">Entradas de Backlog</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="color: #a855f7; background: rgba(168, 85, 247, 0.15);">⏱️</div>
+                        <div>
+                            <div class="kpi-value" id="admin-stat-hours">-</div>
+                            <div class="kpi-label">Horas Registradas</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-top: 1rem;">
+                    <h3 style="font-size: 1.1rem; color: #fff; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00dfa2" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                        Integridad de Arquitectura & Persistencia Relacional
+                    </h3>
+                    <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6;">
+                        El sistema opera en modo <strong>SQLite Write-Ahead Logging (WAL)</strong> con claves foráneas activas y verificación estricta de Tercera Forma Normal (3FN). Todas las modificaciones sobre el catálogo disparan actualización en cascada y están protegidas por el middleware criptográfico <code>adminMiddleware</code> (RBAC).
+                    </p>
+                </div>
+            </div>
+        </section>
     </main>
 
     <!-- FOOTER -->
@@ -725,6 +852,101 @@
                 <button type="submit" class="btn btn-primary btn-sm" style="padding: 0.55rem 0.85rem;" title="Enviar consulta">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                 </button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ================= MODAL ADMIN: CREAR / EDITAR JUEGO ================= -->
+    <div class="modal-overlay" id="modal-admin-game">
+        <div class="modal-content" style="max-width: 620px;">
+            <button class="modal-close" data-close="modal-admin-game">&times;</button>
+            <h2 id="modal-admin-game-title" style="margin-bottom: 1.25rem; font-size: 1.35rem; color: #fbbf24; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                <span>Añadir Videojuego al Catálogo</span>
+            </h2>
+
+            <form id="form-admin-game">
+                <input type="hidden" id="admin-game-id">
+
+                <div class="form-group">
+                    <label class="form-label">Título del Videojuego *</label>
+                    <input type="text" id="admin-game-title" class="form-input" placeholder="Ej: Cyberpunk 2077" required>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Género / Categoría *</label>
+                        <input type="text" id="admin-game-genre" class="form-input" list="genre-presets" placeholder="Ej: RPG, Acción, Shooter..." required>
+                        <datalist id="genre-presets">
+                            <option value="Acción">
+                            <option value="Aventura">
+                            <option value="RPG">
+                            <option value="Shooter">
+                            <option value="Estrategia">
+                            <option value="Carreras">
+                            <option value="Survival Horror">
+                            <option value="Mundo Abierto">
+                            <option value="MOBA">
+                            <option value="Música">
+                        </datalist>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Plataforma Principal *</label>
+                        <input type="text" id="admin-game-platform" class="form-input" placeholder="Ej: PC, PS5, Xbox Series..." required>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Año de Lanzamiento</label>
+                        <input type="number" id="admin-game-year" class="form-input" placeholder="Ej: 2024" min="1970" max="2030">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Desarrollador / Estudio</label>
+                        <input type="text" id="admin-game-dev" class="form-input" placeholder="Ej: Valve, CD Projekt RED...">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">URL de Portada (Carátula) *</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
+                        <input type="text" id="admin-game-cover" class="form-input" placeholder="/assets/covers/cs2.webp o https://..." style="flex: 1;" required>
+                        <select id="admin-game-preset-cover" class="form-select" style="width: 140px;">
+                            <option value="">Predefinidas...</option>
+                            <option value="/assets/covers/cs2.webp">CS2</option>
+                            <option value="/assets/covers/HL2.webp">Half-Life 2</option>
+                            <option value="/assets/covers/red dead 2.webp">RDR 2</option>
+                            <option value="/assets/covers/resident evil 4.jpg">Resident Evil 4</option>
+                            <option value="/assets/covers/age of empires 2.jpg">Age of Empires II</option>
+                            <option value="/assets/covers/devil may cry 4.webp">Devil May Cry 4</option>
+                            <option value="/assets/covers/farcry.jpg">Far Cry</option>
+                            <option value="/assets/covers/guitar hero.jpg">Guitar Hero III</option>
+                            <option value="/assets/covers/league of legends.jpg">League of Legends</option>
+                            <option value="/assets/covers/nfs mw.webp">NFS Most Wanted</option>
+                            <option value="/assets/covers/Uncharted_4_portada.webp">Uncharted 4</option>
+                            <option value="/assets/covers/vice city.jpg">GTA Vice City</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.85rem; background: rgba(0,0,0,0.25); padding: 0.65rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <img id="admin-cover-preview" src="/assets/covers/cs2.webp" alt="Vista previa" style="width: 48px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Vista previa de la carátula oficial en catálogo</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Sinopsis / Descripción</label>
+                    <textarea id="admin-game-synopsis" class="form-textarea" rows="3" placeholder="Descripción detallada de la trama, características o jugabilidad..."></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-secondary" data-close="modal-admin-game">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btn-save-admin-game" style="background: #fbbf24; color: #090d16; font-weight: 700;">
+                        Guardar Videojuego
+                    </button>
+                </div>
             </form>
         </div>
     </div>

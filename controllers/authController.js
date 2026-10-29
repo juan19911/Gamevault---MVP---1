@@ -51,7 +51,7 @@ const AuthController = {
                 success: true,
                 message: 'Usuario registrado exitosamente en GameVault.',
                 token,
-                user: { id: userId, username, email, avatar: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=150', bio: 'Gamer en busca de completar su backlog.', platform: 'PC' }
+                user: { id: userId, username, email, avatar: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=150', bio: 'Gamer en busca de completar su backlog.', platform: 'PC', role: 'user' }
             });
         } catch (err) {
             next(err);
@@ -101,7 +101,8 @@ const AuthController = {
                     email: user.email,
                     avatar: user.avatar,
                     bio: user.bio,
-                    platform: user.platform
+                    platform: user.platform,
+                    role: user.role
                 }
             });
         } catch (err) {

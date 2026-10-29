@@ -97,6 +97,32 @@ async function initDatabase() {
 }
 
 async function seedInitialData() {
+    // Ensure role column exists (safe migration)
+    try {
+        const [cols] = await db.query("PRAGMA table_info(users)");
+        const hasRole = Array.isArray(cols) && cols.some(c => c.name === 'role');
+        if (!hasRole) {
+            await db.query("ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'user'");
+        }
+    } catch (e) {
+        // Safe fallback for MySQL or other drivers
+    }
+
+    // Ensure admin user always exists
+    try {
+        const [adminCheck] = await db.query("SELECT id FROM users WHERE email = 'admin@gamevault.com' LIMIT 1");
+        if (!adminCheck || adminCheck.length === 0) {
+            console.log('[Database] Inicializando cuenta de administrador oficial...');
+            const adminHash = await bcrypt.hash('admin1234', 10);
+            await db.query(
+                `INSERT INTO users (username, email, password_hash, avatar, bio, platform, role)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                ['admin', 'admin@gamevault.com', adminHash, '/assets/avatars/pixel-marine.svg', 'Administrador General de GameVault.', 'PC Master Race', 'admin']
+            );
+        }
+    } catch (e) {
+        console.error('[Database] Warning verificando admin:', e.message);
+    }
     // Check if games table is empty
     const [existingGames] = await db.query('SELECT COUNT(*) as count FROM games');
     const count = existingGames[0]?.count || 0;
@@ -304,6 +330,18 @@ async function seedInitialData() {
              (?, 17, 'pending', 'medium', 0.0, NULL, NULL, 0)`,
             [demoUserId, demoUserId, demoUserId, demoUserId, demoUserId, demoUserId, demoUserId, demoUserId]
         );
+
+                // Check and seed Administrator account (admin@gamevault.com / admin1234)
+        const [existingAdmin] = await db.query("SELECT id FROM users WHERE email = 'admin@gamevault.com' LIMIT 1");
+        if (!existingAdmin || existingAdmin.length === 0) {
+            console.log('[Database] Creando usuario administrador del sistema (admin@gamevault.com)...');
+            const adminHash = await bcrypt.hash('admin1234', 10);
+            await db.query(
+                `INSERT INTO users (username, email, password_hash, avatar, bio, platform, role)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                ['admin', 'admin@gamevault.com', adminHash, '/assets/avatars/pixel-marine.svg', 'Administrador General de la Plataforma GameVault.', 'PC Master Race', 'admin']
+            );
+        }
 
         // Add 2 play sessions
         await db.query(

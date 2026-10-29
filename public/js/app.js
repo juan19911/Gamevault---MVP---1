@@ -48,7 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
         library: document.getElementById('view-library'),
         lists: document.getElementById('view-lists'),
         discovery: document.getElementById('view-discovery'),
-        dashboard: document.getElementById('view-dashboard')
+        dashboard: document.getElementById('view-dashboard'),
+        admin: document.getElementById('view-admin')
     };
 
     const navBtns = document.querySelectorAll('.nav-btn');
@@ -63,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFilters();
     initListsUI();
     initFaqBot();
+    initAdminUI();
     loadCatalog();
 
     // Default session date to today
@@ -76,14 +78,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     function initAuthUI() {
         const user = API.getUser();
+        const navAdmin = document.getElementById('nav-admin');
         if (user && API.getToken()) {
             userLoggedBox.style.display = 'flex';
             btnOpenAuth.style.display = 'none';
             navUserName.textContent = user.username;
             navUserAvatar.src = user.avatar || '/assets/avatars/pixel-knight.svg';
+
+            if (user.role === 'admin' && navAdmin) {
+                navAdmin.style.display = 'inline-flex';
+            } else if (navAdmin) {
+                navAdmin.style.display = 'none';
+            }
         } else {
             userLoggedBox.style.display = 'none';
             btnOpenAuth.style.display = 'inline-flex';
+            if (navAdmin) navAdmin.style.display = 'none';
         }
     }
 
@@ -372,6 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (viewName === 'lists') loadCustomLists();
         if (viewName === 'discovery') loadDiscovery();
         if (viewName === 'dashboard') loadDashboard();
+        if (viewName === 'admin') loadAdminDashboard();
     }
 
     // ==========================================
@@ -1534,6 +1545,345 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }, 350);
         });
+    }
+
+
+    // ==========================================
+    // 8. ADMINISTRATIVE PANEL (RBAC & CATALOG CRUD)
+    // ==========================================
+    let activeAdminTab = 'catalog';
+    let adminCatalogDebounce = null;
+
+    function initAdminUI() {
+        // Tab switching
+        const adminTabBtns = document.querySelectorAll('#admin-tabs .tab-btn');
+        adminTabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                adminTabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeAdminTab = btn.dataset.adminTab;
+
+                document.getElementById('admin-tab-content-catalog').style.display = (activeAdminTab === 'catalog') ? 'block' : 'none';
+                document.getElementById('admin-tab-content-users').style.display = (activeAdminTab === 'users') ? 'block' : 'none';
+                document.getElementById('admin-tab-content-stats').style.display = (activeAdminTab === 'stats') ? 'block' : 'none';
+
+                if (activeAdminTab === 'catalog') loadAdminCatalog();
+                if (activeAdminTab === 'users') loadAdminUsers();
+                if (activeAdminTab === 'stats') loadAdminStats();
+            });
+        });
+
+        // Search & genre filter in admin catalog
+        const adminSearch = document.getElementById('admin-search-catalog');
+        if (adminSearch) {
+            adminSearch.addEventListener('input', () => {
+                clearTimeout(adminCatalogDebounce);
+                adminCatalogDebounce = setTimeout(() => {
+                    loadAdminCatalog();
+                }, 300);
+            });
+        }
+
+        const adminGenreFilter = document.getElementById('admin-filter-genre');
+        if (adminGenreFilter) {
+            adminGenreFilter.addEventListener('change', () => loadAdminCatalog());
+        }
+
+        // Add Game Button
+        const btnAddGame = document.getElementById('btn-admin-add-game');
+        if (btnAddGame) {
+            btnAddGame.addEventListener('click', () => {
+                const user = API.getUser();
+                if (!user || user.role !== 'admin') {
+                    showToast('Se requieren permisos de administrador.', 'error');
+                    return;
+                }
+                document.getElementById('form-admin-game').reset();
+                document.getElementById('admin-game-id').value = '';
+                document.getElementById('modal-admin-game-title').innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    <span>Añadir Videojuego al Catálogo</span>
+                `;
+                document.getElementById('admin-game-cover').value = '/assets/covers/cs2.webp';
+                document.getElementById('admin-cover-preview').src = '/assets/covers/cs2.webp';
+                openModal('modal-admin-game');
+            });
+        }
+
+        // Cover preset and live preview
+        const coverInput = document.getElementById('admin-game-cover');
+        const coverPreset = document.getElementById('admin-game-preset-cover');
+        const coverPreview = document.getElementById('admin-cover-preview');
+
+        if (coverPreset && coverInput && coverPreview) {
+            coverPreset.addEventListener('change', () => {
+                if (coverPreset.value) {
+                    coverInput.value = coverPreset.value;
+                    coverPreview.src = coverPreset.value;
+                }
+            });
+
+            coverInput.addEventListener('input', () => {
+                coverPreview.src = coverInput.value || '/assets/covers/cs2.webp';
+            });
+            coverPreview.addEventListener('error', () => {
+                coverPreview.src = 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600';
+            });
+        }
+
+        // Form submit (Create or Update Game)
+        const formAdminGame = document.getElementById('form-admin-game');
+        if (formAdminGame) {
+            formAdminGame.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const gameId = document.getElementById('admin-game-id').value;
+                const title = document.getElementById('admin-game-title').value.trim();
+                const genre = document.getElementById('admin-game-genre').value.trim();
+                const platform = document.getElementById('admin-game-platform').value.trim();
+                const release_year = document.getElementById('admin-game-year').value;
+                const developer = document.getElementById('admin-game-dev').value.trim();
+                const synopsis = document.getElementById('admin-game-synopsis').value.trim();
+                const cover_url = document.getElementById('admin-game-cover').value.trim();
+
+                const payload = {
+                    title,
+                    genre,
+                    platform,
+                    release_year: release_year ? parseInt(release_year, 10) : null,
+                    developer,
+                    synopsis,
+                    cover_url
+                };
+
+                const btnSave = document.getElementById('btn-save-admin-game');
+                btnSave.disabled = true;
+                btnSave.textContent = 'Guardando...';
+
+                try {
+                    if (gameId) {
+                        await API.updateAdminGame(gameId, payload);
+                        showToast(`Videojuego "${title}" actualizado correctamente.`);
+                    } else {
+                        await API.createAdminGame(payload);
+                        showToast(`¡Videojuego "${title}" añadido al catálogo oficial!`);
+                    }
+                    closeModal('modal-admin-game');
+                    loadAdminCatalog();
+                    loadCatalog(); // Refresh public catalog too
+                    loadAdminStats();
+                } catch (err) {
+                    showToast(err.message || 'Error guardando videojuego', 'error');
+                } finally {
+                    btnSave.disabled = false;
+                    btnSave.textContent = 'Guardar Videojuego';
+                }
+            });
+        }
+    }
+
+    async function loadAdminDashboard() {
+        const user = API.getUser();
+        if (!user || user.role !== 'admin') {
+            showToast('Acceso restringido: Se requieren credenciales de administrador.', 'error');
+            switchView('catalog');
+            return;
+        }
+
+        if (activeAdminTab === 'catalog') {
+            await loadAdminCatalog();
+        } else if (activeAdminTab === 'users') {
+            await loadAdminUsers();
+        } else if (activeAdminTab === 'stats') {
+            await loadAdminStats();
+        }
+    }
+
+    async function loadAdminCatalog() {
+        const tbody = document.getElementById('admin-catalog-tbody');
+        if (!tbody) return;
+
+        const search = document.getElementById('admin-search-catalog')?.value || '';
+        const genre = document.getElementById('admin-filter-genre')?.value || '';
+
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);">Cargando catálogo oficial...</td></tr>`;
+
+        try {
+            const res = await API.getGames({ search, genre });
+            const games = res.data || [];
+
+            // Populate admin genre filter if empty
+            const genreSelect = document.getElementById('admin-filter-genre');
+            if (genreSelect && genreSelect.options.length <= 1) {
+                const filterRes = await API.getFilters();
+                (filterRes.genres || []).forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g;
+                    opt.textContent = g;
+                    genreSelect.appendChild(opt);
+                });
+            }
+
+            if (games.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);">No se encontraron videojuegos en el catálogo.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = games.map(g => `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+                    <td style="padding: 0.75rem 1rem;">
+                        <img src="${g.cover_url || '/assets/covers/cs2.webp'}" alt="${g.title}" style="width: 38px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color);" onerror="this.src='https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600'">
+                    </td>
+                    <td style="padding: 0.75rem 1rem;">
+                        <strong style="color: #fff; display: block; font-size: 0.92rem;">${g.title}</strong>
+                        <span style="color: var(--text-muted); font-size: 0.78rem;">${g.developer || 'Estudio N/A'}</span>
+                    </td>
+                    <td style="padding: 0.75rem 1rem;">
+                        <span class="badge-tag" style="background: rgba(0, 223, 162, 0.12); color: var(--primary); border: 1px solid rgba(0, 223, 162, 0.3);">${g.genre}</span>
+                    </td>
+                    <td style="padding: 0.75rem 1rem; color: #cbd5e1;">${g.platform}</td>
+                    <td style="padding: 0.75rem 1rem; color: var(--text-muted); font-weight: 600;">${g.release_year || 'N/A'}</td>
+                    <td style="padding: 0.75rem 1rem; text-align: right;">
+                        <div style="display: inline-flex; gap: 0.4rem;">
+                            <button class="btn btn-secondary btn-sm btn-edit-game" data-id="${g.id}" title="Editar Videojuego" style="padding: 0.35rem 0.65rem;">
+                                ✏️ Editar
+                            </button>
+                            <button class="btn btn-danger btn-sm btn-del-game" data-id="${g.id}" data-title="${g.title}" title="Eliminar del Catálogo" style="padding: 0.35rem 0.65rem;">
+                                🗑️ Eliminar
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Attach event listeners to Edit and Delete buttons
+            tbody.querySelectorAll('.btn-edit-game').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const id = btn.dataset.id;
+                    try {
+                        const gameRes = await API.getGameById(id);
+                        const game = gameRes.data;
+                        document.getElementById('admin-game-id').value = game.id;
+                        document.getElementById('admin-game-title').value = game.title;
+                        document.getElementById('admin-game-genre').value = game.genre;
+                        document.getElementById('admin-game-platform').value = game.platform;
+                        document.getElementById('admin-game-year').value = game.release_year || '';
+                        document.getElementById('admin-game-dev').value = game.developer || '';
+                        document.getElementById('admin-game-synopsis').value = game.synopsis || '';
+                        document.getElementById('admin-game-cover').value = game.cover_url || '';
+                        document.getElementById('admin-cover-preview').src = game.cover_url || '/assets/covers/cs2.webp';
+                        document.getElementById('modal-admin-game-title').innerHTML = `
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            <span>Editar Videojuego #${game.id}</span>
+                        `;
+                        openModal('modal-admin-game');
+                    } catch (err) {
+                        showToast('Error cargando datos del juego', 'error');
+                    }
+                });
+            });
+
+            tbody.querySelectorAll('.btn-del-game').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const id = btn.dataset.id;
+                    const title = btn.dataset.title;
+                    if (confirm(`¿Confirma que desea eliminar el videojuego "${title}" del catálogo? Se borrará de todas las bibliotecas de usuarios.`)) {
+                        try {
+                            await API.deleteAdminGame(id);
+                            showToast(`Videojuego "${title}" eliminado.`);
+                            loadAdminCatalog();
+                            loadCatalog();
+                            loadAdminStats();
+                        } catch (err) {
+                            showToast(err.message || 'Error eliminando juego', 'error');
+                        }
+                    }
+                });
+            });
+
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #ef4444;">Error cargando catálogo: ${err.message}</td></tr>`;
+        }
+    }
+
+    async function loadAdminUsers() {
+        const tbody = document.getElementById('admin-users-tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">Cargando usuarios registrados...</td></tr>`;
+
+        try {
+            const res = await API.getAdminUsers();
+            const users = res.data || [];
+
+            if (users.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">No hay usuarios registrados.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = users.map(u => `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+                    <td style="padding: 0.75rem 1rem; color: var(--text-muted); font-weight: 700;">#${u.id}</td>
+                    <td style="padding: 0.75rem 1rem;">
+                        <div style="display: flex; align-items: center; gap: 0.6rem;">
+                            <img src="${u.avatar || '/assets/avatars/pixel-knight.svg'}" alt="${u.username}" style="width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border-color);">
+                            <span style="font-weight: 700; color: #fff;">${u.username}</span>
+                        </div>
+                    </td>
+                    <td style="padding: 0.75rem 1rem; color: #cbd5e1;">${u.email}</td>
+                    <td style="padding: 0.75rem 1rem; color: var(--text-muted);">${u.platform || 'PC'}</td>
+                    <td style="padding: 0.75rem 1rem;">
+                        ${u.role === 'admin' 
+                            ? '<span class="badge-tag" style="background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.4); font-weight: 700;">🛡️ ADMIN</span>' 
+                            : '<span class="badge-tag" style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">👤 USER</span>'}
+                    </td>
+                    <td style="padding: 0.75rem 1rem; font-weight: 700; color: #00dfa2;">${u.total_games || 0}</td>
+                    <td style="padding: 0.75rem 1rem; text-align: right;">
+                        <button class="btn btn-secondary btn-sm btn-toggle-role" data-id="${u.id}" data-role="${u.role}" style="font-size: 0.75rem;">
+                            ${u.role === 'admin' ? 'Degradar a User' : 'Hacer Admin'}
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            tbody.querySelectorAll('.btn-toggle-role').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const id = btn.dataset.id;
+                    const currentRole = btn.dataset.role;
+                    const newRole = currentRole === 'admin' ? 'user' : 'admin';
+
+                    if (confirm(`¿Desea cambiar el rol del usuario #${id} a "${newRole}"?`)) {
+                        try {
+                            await API.updateAdminUserRole(id, newRole);
+                            showToast(`Rol del usuario actualizado a ${newRole}.`);
+                            loadAdminUsers();
+                        } catch (err) {
+                            showToast(err.message || 'Error actualizando rol', 'error');
+                        }
+                    }
+                });
+            });
+
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #ef4444;">Error cargando usuarios: ${err.message}</td></tr>`;
+        }
+    }
+
+    async function loadAdminStats() {
+        try {
+            const res = await API.getAdminStats();
+            const stats = res.data || {};
+            const elUsers = document.getElementById('admin-stat-users');
+            const elGames = document.getElementById('admin-stat-games');
+            const elLibrary = document.getElementById('admin-stat-library');
+            const elHours = document.getElementById('admin-stat-hours');
+
+            if (elUsers) elUsers.textContent = stats.total_users || 0;
+            if (elGames) elGames.textContent = stats.total_games || 0;
+            if (elLibrary) elLibrary.textContent = stats.total_library_entries || 0;
+            if (elHours) elHours.textContent = `${Number(stats.total_hours_logged || 0).toFixed(1)}h`;
+        } catch (err) {
+            console.error('Error cargando stats de admin:', err);
+        }
     }
 
 });
