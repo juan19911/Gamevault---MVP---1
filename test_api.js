@@ -46,7 +46,7 @@ async function runTests() {
         console.log('\n--- 2. Testing Login (HU-01) ---');
         const login = await makeRequest('/api/auth/login', 'POST', {
             email: 'gamer@tudai.edu.ar',
-            password: 'gamer123'
+            password: 'gamer1234'
         });
         console.log('Login Status:', login.status, '| Token received:', !!login.body.token);
         const token = login.body.token;

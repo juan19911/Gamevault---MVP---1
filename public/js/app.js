@@ -1505,7 +1505,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         {
             keywords: ['demo', 'login', 'iniciar sesion', 'usuario', 'cuenta', 'clave', 'password'],
-            answer: '🔑 <strong>Cuenta de Prueba Demo:</strong><br>• Correo: <code>gamer@tudai.edu.ar</code><br>• Contraseña: <code>gamer123</code><br>También puedes registrarte con una cuenta nueva desde el modal de autenticación.'
+            answer: '🔑 <strong>Cuenta de Prueba Demo:</strong><br>• Correo: <code>gamer@tudai.edu.ar</code><br>• Contraseña: <code>gamer1234</code><br>También puedes registrarte con una cuenta nueva desde el modal de autenticación.'
         },
         {
             keywords: ['estadisticas', 'kpi', 'dashboard', 'grafico', 'graficos', 'chart'],
