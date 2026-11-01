@@ -114,6 +114,41 @@ const ListController = {
         }
     },
 
+        async updateList(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { name, description } = req.body;
+
+            if (name !== undefined && name.trim() === '') {
+                return res.status(400).json({
+                    success: false,
+                    message: 'El nombre de la lista temática no puede estar vacío.'
+                });
+            }
+
+            const updated = await ListModel.updateList(id, req.user.id, {
+                name: name ? name.trim() : undefined,
+                description: description !== undefined ? description.trim() : undefined
+            });
+
+            if (!updated) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Lista temática no encontrada o no autorizada para modificar.'
+                });
+            }
+
+            const list = await ListModel.getListById(id, req.user.id);
+            res.status(200).json({
+                success: true,
+                message: 'Lista temática modificada con éxito.',
+                data: list
+            });
+        } catch (err) {
+            next(err);
+        }
+    },
+
     async deleteList(req, res, next) {
         try {
             const { id } = req.params;

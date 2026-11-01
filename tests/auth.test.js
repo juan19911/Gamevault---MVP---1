@@ -42,7 +42,7 @@ describe('Autenticación y Registro de Usuarios (HU-01)', () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 email: 'gamer@tudai.edu.ar',
-                password: 'gamer123'
+                password: 'gamer1234'
             })
         });
 
@@ -66,6 +66,42 @@ describe('Autenticación y Registro de Usuarios (HU-01)', () => {
         assert.strictEqual(res.status, 401);
         const data = await res.json();
         assert.strictEqual(data.success, false);
+    });
+
+
+    test('POST /api/auth/register debe rechazar contraseñas de menos de 8 caracteres (ej. 6 o 7 chars)', async () => {
+        const res = await fetch(`${baseUrl}/api/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: `short_pass_${Date.now()}`,
+                email: `short_${Date.now()}@gamevault.test`,
+                password: 'pass123' // 7 caracteres
+            })
+        });
+
+        assert.strictEqual(res.status, 400);
+        const data = await res.json();
+        assert.strictEqual(data.success, false);
+        assert.ok(data.message.includes('8 caracteres'), 'Debe exigir al menos 8 caracteres');
+    });
+
+    test('POST /api/auth/register debe aceptar contraseña válida de exactamente 8 caracteres', async () => {
+        const uniqueSuffix = Date.now();
+        const res = await fetch(`${baseUrl}/api/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: `pass8_${uniqueSuffix}`,
+                email: `pass8_${uniqueSuffix}@gamevault.test`,
+                password: 'Abcd1234' // Exactamente 8 caracteres
+            })
+        });
+
+        assert.strictEqual(res.status, 201);
+        const data = await res.json();
+        assert.strictEqual(data.success, true);
+        assert.ok(data.token);
     });
 
     test('Rutas protegidas deben rechazar con 401 si falta el header Authorization', async () => {

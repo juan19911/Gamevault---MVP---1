@@ -16,7 +16,7 @@ describe('Perfil de Usuario y Tope de 4 Favoritos (HU-02)', () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 email: 'gamer@tudai.edu.ar',
-                password: 'gamer123'
+                password: 'gamer1234'
             })
         });
         const loginData = await loginRes.json();
@@ -78,7 +78,7 @@ describe('Perfil de Usuario y Tope de 4 Favoritos (HU-02)', () => {
         assert.strictEqual(data.success, false);
     });
 
-    test('PUT /api/auth/profile rechaza cambio de contraseña menor a 6 caracteres', async () => {
+    test('PUT /api/auth/profile rechaza cambio de contraseña menor a 8 caracteres', async () => {
         const res = await fetch(`${baseUrl}/api/auth/profile`, {
             method: 'PUT',
             headers: {
@@ -86,8 +86,8 @@ describe('Perfil de Usuario y Tope de 4 Favoritos (HU-02)', () => {
                 'Authorization': `Bearer ${authToken}`
             },
             body: JSON.stringify({
-                current_password: 'gamer123',
-                new_password: '123'
+                current_password: 'gamer1234',
+                new_password: '1234567'
             })
         });
 

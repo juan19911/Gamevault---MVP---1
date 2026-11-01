@@ -14,10 +14,10 @@ const AuthController = {
                 });
             }
 
-            if (password.length < 6) {
+            if (password.length < 8) {
                 return res.status(400).json({
                     success: false,
-                    message: 'La contraseña debe contener al menos 6 caracteres.'
+                    message: 'La contraseña debe contener al menos 8 caracteres.'
                 });
             }
 
@@ -142,10 +142,10 @@ const AuthController = {
                         message: 'Debes ingresar tu contraseña actual para autorizar el cambio de contraseña.'
                     });
                 }
-                if (new_password.trim().length < 6) {
+                if (new_password.trim().length < 8) {
                     return res.status(400).json({
                         success: false,
-                        message: 'La nueva contraseña debe tener al menos 6 caracteres.'
+                        message: 'La nueva contraseña debe tener al menos 8 caracteres.'
                     });
                 }
                 const currentHash = await UserModel.getPasswordHash(req.user.id);

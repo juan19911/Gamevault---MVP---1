@@ -80,6 +80,24 @@ const ListModel = {
         return { success: true, affected: result.affectedRows };
     },
 
+        async updateList(listId, userId, { name, description }) {
+        // Ownership check
+        const [lists] = await db.query(
+            'SELECT id FROM custom_lists WHERE id = ? AND user_id = ?',
+            [listId, userId]
+        );
+        if (!lists || lists.length === 0) return false;
+
+        const [result] = await db.query(
+            `UPDATE custom_lists
+             SET name = COALESCE(?, name),
+                 description = COALESCE(?, description)
+             WHERE id = ? AND user_id = ?`,
+            [name !== undefined ? name : null, description !== undefined ? description : null, listId, userId]
+        );
+        return result.affectedRows > 0;
+    },
+
     async deleteList(listId, userId) {
         const [result] = await db.query(
             'DELETE FROM custom_lists WHERE id = ? AND user_id = ?',

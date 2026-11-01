@@ -63,10 +63,10 @@ const AdminController = {
                 });
             }
 
-            if (password.length < 6) {
+            if (password.length < 8) {
                 return res.status(400).json({
                     success: false,
-                    message: 'La contraseña debe contener al menos 6 caracteres.'
+                    message: 'La contraseña debe contener al menos 8 caracteres.'
                 });
             }
 
@@ -143,7 +143,13 @@ const AdminController = {
             }
 
             let passwordHash = null;
-            if (password && password.trim().length >= 6) {
+            if (password && password.trim() !== '') {
+                if (password.trim().length < 8) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'La contraseña debe contener al menos 8 caracteres.'
+                    });
+                }
                 passwordHash = await bcrypt.hash(password.trim(), 10);
             }
 

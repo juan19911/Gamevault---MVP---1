@@ -25,7 +25,7 @@ describe('Panel de Administración y Control de Acceso por Roles (RBAC)', () => 
         const userRes = await fetch(`${baseUrl}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: 'gamer@tudai.edu.ar', password: 'gamer123' })
+            body: JSON.stringify({ email: 'gamer@tudai.edu.ar', password: 'gamer1234' })
         });
         const userData = await userRes.json();
         userToken = userData.token;

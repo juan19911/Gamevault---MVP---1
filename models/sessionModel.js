@@ -2,30 +2,42 @@ const { db } = require('../config/database');
 
 const SessionModel = {
     async createSession({ user_library_id, hours, session_date, notes }) {
-        const [result] = await db.query(
-            `INSERT INTO play_sessions (user_library_id, hours, session_date, notes)
-             VALUES (?, ?, ?, ?)`,
-            [user_library_id, hours, session_date, notes || null]
-        );
+        await db.query('BEGIN TRANSACTION');
+        try {
+            const [result] = await db.query(
+                `INSERT INTO play_sessions (user_library_id, hours, session_date, notes)
+                 VALUES (?, ?, ?, ?)`,
+                [user_library_id, hours, session_date, notes || null]
+            );
 
-        // Transactional automatic increment of total hours played in library
-        await db.query(
-            `UPDATE user_library
-             SET hours_played = hours_played + ?,
-                 updated_at = CURRENT_TIMESTAMP
-             WHERE id = ?`,
-            [hours, user_library_id]
-        );
+            // Transactional automatic increment of total hours played in library
+            await db.query(
+                `UPDATE user_library
+                 SET hours_played = hours_played + ?,
+                     updated_at = CURRENT_TIMESTAMP
+                 WHERE id = ?`,
+                [hours, user_library_id]
+            );
 
-        const [lib] = await db.query(
-            'SELECT hours_played FROM user_library WHERE id = ?',
-            [user_library_id]
-        );
+            const [lib] = await db.query(
+                'SELECT hours_played FROM user_library WHERE id = ?',
+                [user_library_id]
+            );
 
-        return {
-            session_id: result.insertId,
-            new_total_hours: lib[0]?.hours_played || 0
-        };
+            await db.query('COMMIT');
+
+            return {
+                session_id: result.insertId,
+                new_total_hours: lib[0]?.hours_played || 0
+            };
+        } catch (err) {
+            try {
+                await db.query('ROLLBACK');
+            } catch (rollbackErr) {
+                // Ignore rollback error if already rolled back
+            }
+            throw err;
+        }
     },
 
     async getSessionsByLibraryId(user_library_id) {
@@ -55,4 +67,3 @@ const SessionModel = {
 };
 
 module.exports = SessionModel;
-

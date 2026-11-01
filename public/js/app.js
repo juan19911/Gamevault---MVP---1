@@ -345,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             if (new_password.length < 6) {
-                showToast('La nueva contraseña debe tener al menos 6 caracteres', true);
+                showToast('La nueva contraseña debe tener al menos 8 caracteres', true);
                 return;
             }
             if (new_password !== confirm_password) {

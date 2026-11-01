@@ -16,7 +16,7 @@ describe('Listas Temáticas y Colecciones Personalizadas (HU-05)', () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 email: 'gamer@tudai.edu.ar',
-                password: 'gamer123'
+                password: 'gamer1234'
             })
         });
         const loginData = await loginRes.json();
@@ -94,6 +94,28 @@ describe('Listas Temáticas y Colecciones Personalizadas (HU-05)', () => {
         assert.ok(Array.isArray(data.data.games));
         assert.strictEqual(data.data.games.length, 1);
         assert.strictEqual(data.data.games[0].game_id, 1);
+    });
+
+    test('PUT /api/lists/:id permite editar el nombre y descripción de la lista (RF-09)', async () => {
+        assert.ok(createdListId);
+
+        const res = await fetch(`${baseUrl}/api/lists/${createdListId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify({
+                name: 'Lista Modificada 2026',
+                description: 'Descripción actualizada vía PUT endpoint.'
+            })
+        });
+
+        assert.strictEqual(res.status, 200);
+        const data = await res.json();
+        assert.strictEqual(data.success, true);
+        assert.strictEqual(data.data.name, 'Lista Modificada 2026');
+        assert.strictEqual(data.data.description, 'Descripción actualizada vía PUT endpoint.');
     });
 
     test('DELETE /api/lists/:id elimina la lista temática', async () => {

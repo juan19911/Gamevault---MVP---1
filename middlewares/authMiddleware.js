@@ -25,27 +25,34 @@ module.exports = async function authMiddleware(req, res, next) {
         const decoded = jwt.verify(token, secret);
         req.user = decoded; // { id, username, email, role, status }
 
-        // Verificar en tiempo real el estado del usuario (baneo)
+        // Verificar en tiempo real el estado del usuario en base de datos
         try {
             const { db } = require('../config/database');
             const [userRows] = await db.query('SELECT status, role FROM users WHERE id = ?', [decoded.id]);
-            if (userRows && userRows[0]) {
-                req.user.status = userRows[0].status || 'active';
-                req.user.role = userRows[0].role || 'user';
-                
-                // Si el usuario está baneado y no es administrador, bloquear cualquier interacción
-                if (req.user.status === 'banned') {
-                    if (req.method !== 'GET') {
-                        return res.status(403).json({
-                            success: false,
-                            banned: true,
-                            message: 'Tu cuenta ha sido suspendida / baneada por un administrador de GameVault. No tienes permiso para realizar acciones en la plataforma.'
-                        });
-                    }
+            if (!userRows || userRows.length === 0) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Usuario inexistente o cuenta eliminada. Sesión revocada.'
+                });
+            }
+            req.user.status = userRows[0].status || 'active';
+            req.user.role = userRows[0].role || 'user';
+            
+            // Suspensión disciplinaria: bloquea todas las operaciones mutativas (POST, PUT, DELETE)
+            if (req.user.status === 'banned') {
+                if (req.method !== 'GET') {
+                    return res.status(403).json({
+                        success: false,
+                        banned: true,
+                        message: 'Tu cuenta ha sido suspendida / baneada por un administrador de GameVault. No tienes permiso para realizar acciones en la plataforma.'
+                    });
                 }
             }
-        } catch (e) {
-            // Continuar con los datos del payload del token si la db está ocupada
+        } catch (dbErr) {
+            return res.status(500).json({
+                success: false,
+                message: 'Error al verificar el estado de la cuenta de usuario.'
+            });
         }
 
         next();

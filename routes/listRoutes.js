@@ -8,6 +8,7 @@ router.use(authMiddleware);
 router.get('/', ListController.getMyLists);
 router.post('/', ListController.createList);
 router.get('/:id', ListController.getListDetails);
+router.put('/:id', ListController.updateList);
 router.delete('/:id', ListController.deleteList);
 router.post('/:id/items', ListController.addGame);
 router.delete('/:id/items/:gameId', ListController.removeGame);

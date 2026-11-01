@@ -1,12 +1,13 @@
 {
   "name": "gamevault-mvp",
   "version": "1.0.0",
-  "description": "GameVault - Plataforma de Gestión de Backlog y Colección Personal de Videojuegos (TUDAI)",
+  "description": "GameVault - Plataforma de Gesti\u00f3n de Backlog y Colecci\u00f3n Personal de Videojuegos (TUDAI)",
   "main": "server.js",
   "scripts": {
     "start": "node --experimental-sqlite server.js",
     "dev": "node --experimental-sqlite --watch server.js",
-    "test": "node --experimental-sqlite --test tests/*.test.js"
+    "test": "node --experimental-sqlite --test --test-concurrency=1 tests/*.test.js",
+    "seed": "node --experimental-sqlite -e \"require('./config/database').initDatabase().then(() => { console.log('[Database] Inicializaci\u00f3n y siembra completadas con \u00e9xito.'); process.exit(0); }).catch(e => { console.error(e); process.exit(1); });\""
   },
   "keywords": [
     "gamevault",
