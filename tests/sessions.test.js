@@ -4,7 +4,7 @@ const { getTestServer, closeTestServer } = require('./helpers/setup');
 const SessionModel = require('../models/sessionModel');
 const { db } = require('../config/database');
 
-describe('Bitácora de Sesiones de Juego y Consistencia Transaccional (HU-04)', () => {
+describe('Bitácora de Sesiones de Juego y Consistencia Transaccional (RF-05 / HU-05)', () => {
     let baseUrl = '';
     let authToken = '';
 

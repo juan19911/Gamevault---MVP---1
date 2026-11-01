@@ -96,7 +96,7 @@ describe('Listas Temáticas y Colecciones Personalizadas (HU-05)', () => {
         assert.strictEqual(data.data.games[0].game_id, 1);
     });
 
-    test('PUT /api/lists/:id permite editar el nombre y descripción de la lista (RF-09)', async () => {
+    test('PUT /api/lists/:id permite editar el nombre y descripción de la lista (RF-05 / HU-05)', async () => {
         assert.ok(createdListId);
 
         const res = await fetch(`${baseUrl}/api/lists/${createdListId}`, {
