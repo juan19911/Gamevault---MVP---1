@@ -219,6 +219,13 @@ const API = {
         });
     },
 
+    async updateList(listId, listData) {
+        return await this.request(`/lists/${listId}`, {
+            method: 'PUT',
+            body: JSON.stringify(listData)
+        });
+    },
+
     async addGameToList(listId, gameId) {
         return await this.request(`/lists/${listId}/items`, {
             method: 'POST',

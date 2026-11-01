@@ -1175,6 +1175,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 document.getElementById('form-create-list').reset();
+                const editIdEl = document.getElementById('edit-list-id');
+                if (editIdEl) editIdEl.value = '';
+                const titleEl = document.getElementById('modal-list-form-title');
+                if (titleEl) titleEl.textContent = 'Nueva Lista Temática';
                 openModal('modal-create-list');
             });
         }
@@ -1186,9 +1190,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const name = document.getElementById('new-list-name').value.trim();
                 const description = document.getElementById('new-list-desc').value.trim();
                 try {
-                    await API.createList({ name, description });
-                    closeModal('modal-create-list');
-                    showToast(`Lista "${name}" creada con éxito`);
+                    const editId = document.getElementById('edit-list-id')?.value;
+                    if (editId) {
+                        await API.updateList(editId, { name, description });
+                        closeModal('modal-create-list');
+                        showToast(`Lista "${name}" actualizada con éxito`);
+                    } else {
+                        await API.createList({ name, description });
+                        closeModal('modal-create-list');
+                        showToast(`Lista "${name}" creada con éxito`);
+                    }
                     loadCustomLists();
                 } catch (err) {
                     showToast(err.message, true);
@@ -1284,11 +1295,25 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${item.description || '<em>Sin descripción definida.</em>'}
                     </p>
                     <div style="display: flex; gap: 0.5rem; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
+                        <button class="btn btn-secondary btn-sm btn-edit-list" data-id="${item.id}">
+                            ✏️ Editar
+                        </button>
                         <button class="btn btn-secondary btn-sm btn-view-list" data-id="${item.id}">
                             👁️ Ver Colección
                         </button>
                     </div>
                 `;
+
+                card.querySelector('.btn-edit-list')?.addEventListener('click', () => {
+                    document.getElementById('form-create-list').reset();
+                    const editIdEl = document.getElementById('edit-list-id');
+                    if (editIdEl) editIdEl.value = item.id;
+                    const titleEl = document.getElementById('modal-list-form-title');
+                    if (titleEl) titleEl.textContent = 'Editar Lista Temática';
+                    document.getElementById('new-list-name').value = item.name || '';
+                    document.getElementById('new-list-desc').value = item.description || '';
+                    openModal('modal-create-list');
+                });
 
                 card.querySelector('.btn-view-list').addEventListener('click', () => {
                     openMemberListModal(item.id);

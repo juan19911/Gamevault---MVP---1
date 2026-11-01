@@ -29,7 +29,6 @@ describe('Bitácora de Sesiones de Juego y Consistencia Transaccional (HU-04)', 
     });
 
     test('POST /api/sessions debe registrar sesión e incrementar horas acumuladas de forma atómica', async () => {
-        // Obtenemos los juegos de la biblioteca del usuario demo
         const libRes = await fetch(`${baseUrl}/api/library`, {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
@@ -42,7 +41,6 @@ describe('Bitácora de Sesiones de Juego y Consistencia Transaccional (HU-04)', 
         const initialHours = targetItem.hours_played || 0;
         const additionalHours = 2.5;
 
-        // Registrar nueva sesión
         const sessionRes = await fetch(`${baseUrl}/api/sessions`, {
             method: 'POST',
             headers: {
@@ -63,22 +61,43 @@ describe('Bitácora de Sesiones de Juego y Consistencia Transaccional (HU-04)', 
         assert.strictEqual(sessionData.data.new_total_hours, initialHours + additionalHours);
     });
 
-    test('Transacción atómica: si se fuerza un fallo de actualización, el rollback no persiste la sesión', async () => {
-        // Intentar registrar sesión sobre un user_library_id inexistente (violación de integridad referencial FK)
+    test('Transacción atómica: si falla la actualización de horas tras el INSERT, el ROLLBACK revierte la sesión', async () => {
+        const [libRows] = await db.query('SELECT id, hours_played FROM user_library LIMIT 1');
+        const libraryId = libRows[0].id;
+        const hoursBefore = libRows[0].hours_played;
+        const [countBeforeRows] = await db.query('SELECT COUNT(*) as c FROM play_sessions WHERE user_library_id = ?', [libraryId]);
+        const countBefore = countBeforeRows[0].c;
+
+        // Interceptamos temporalmente db.query para que el INSERT funcione pero el UPDATE posterior falle
+        const originalQuery = db.query.bind(db);
+        db.query = async (sql, params) => {
+            if (/UPDATE\s+user_library/i.test(sql)) {
+                throw new Error('Fallo simulado al actualizar acumulador hours_played');
+            }
+            return originalQuery(sql, params);
+        };
+
+        let thrownError = null;
         try {
             await SessionModel.createSession({
-                user_library_id: 999999, // Inexistente -> fallo de integridad
-                hours: 5.0,
+                user_library_id: libraryId,
+                hours: 9.5,
                 session_date: '2026-11-01',
-                notes: 'Sesión fallida que debe revertirse con ROLLBACK'
+                notes: 'Sesión que debe revertirse por ROLLBACK'
             });
         } catch (err) {
-            assert.ok(err, 'Debe lanzar un error y ejecutar rollback');
+            thrownError = err;
+        } finally {
+            db.query = originalQuery;
         }
 
-        // Comprobar que no quedó guardada ninguna sesión huérfana
-        const [finalSessions] = await db.query('SELECT COUNT(*) as c FROM play_sessions WHERE user_library_id = 999999');
-        assert.strictEqual(finalSessions[0].c, 0, 'El rollback transaccional garantizó que no se crearan sesiones huérfanas');
+        assert.ok(thrownError, 'Debe propagar el fallo tras ejecutar ROLLBACK');
+
+        // Verificar que el INSERT previo en play_sessions fue revertido por el ROLLBACK
+        const [countAfterRows] = await db.query('SELECT COUNT(*) as c FROM play_sessions WHERE user_library_id = ?', [libraryId]);
+        const [libAfterRows] = await db.query('SELECT hours_played FROM user_library WHERE id = ?', [libraryId]);
+        assert.strictEqual(countAfterRows[0].c, countBefore, 'El ROLLBACK revirtió el INSERT en play_sessions');
+        assert.strictEqual(libAfterRows[0].hours_played, hoursBefore, 'Las horas acumuladas permanecieron intactas');
     });
 
     test('GET /api/sessions/library/:id devuelve el historial de sesiones ordenado cronológicamente', async () => {
